@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Calculator, TrendingUp } from 'lucide-react';
+import { Calculator, TrendingUp, Sparkles, Layers } from 'lucide-react';
 
 export default function WeeklyAggregationTable({ kpiRows = [] }) {
   // Aggregate rows by week name (case-insensitive trim)
@@ -7,7 +7,6 @@ export default function WeeklyAggregationTable({ kpiRows = [] }) {
 
   kpiRows.forEach(row => {
     const rawWk = (row.week || 'Unspecified').trim();
-    // Normalize key for grouping
     const groupKey = rawWk.toLowerCase();
 
     if (!groupMap[groupKey]) {
@@ -52,71 +51,84 @@ export default function WeeklyAggregationTable({ kpiRows = [] }) {
 
   const aggregatedList = Object.values(groupMap);
 
-  if (aggregatedList.length === 0) return null;
+  if (aggregatedList.length === 0) {
+    return (
+      <div className="glass-panel p-5 rounded-2xl border border-cyan-500/30 bg-[#0C2038]/80 text-center space-y-2">
+        <Calculator className="w-6 h-6 text-[#0AE5D5] mx-auto" />
+        <h4 className="text-sm font-bold text-white">Automated Weekly Subtotal Summary</h4>
+        <p className="text-xs text-slate-400">No weekly performance metrics recorded yet. Metrics will auto-sum here by week.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="glass-panel p-5 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-4 animate-fadeIn">
-      <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+    <div className="glass-panel p-5 rounded-2xl border border-[#33CCFF]/30 bg-gradient-to-b from-[#112037] to-[#0C2038] space-y-4 shadow-xl animate-fadeIn">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#33CCFF]/20 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Calculator className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-bold text-white">Automated Weekly Subtotal Summary</h3>
+          <div className="p-2 rounded-xl gradient-cpt-brand text-[#071322] font-black shadow-md">
+            <Calculator className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-white tracking-wide">Automated Weekly Subtotal Summary</h3>
+            <p className="text-xs text-slate-300">Automatically sums metrics across all ad platforms for each week (e.g. Total Week 1 Spend, Total Accounts, Total Deposits)</p>
+          </div>
         </div>
-        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-          Auto Summed by Week
+
+        <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-[#0AE5D5]/15 text-[#0AE5D5] border border-[#0AE5D5]/40 shadow-sm">
+          Auto Summed By Week
         </span>
       </div>
 
-      <p className="text-xs text-slate-300">
-        Automatically sums up metrics across all ad platforms for each week (e.g. Total Week 1 Spend, Total Week 1 Accounts, Total Week 1 Deposits, etc.):
-      </p>
-
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
+      {/* Aggregated Table */}
+      <div className="overflow-x-auto rounded-xl border border-slate-700/80 shadow-inner">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="bg-slate-900 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
-              <th className="p-3">Aggregated Week</th>
-              <th className="p-3">Platforms Included</th>
-              <th className="p-3">Total Spend ($)</th>
-              <th className="p-3 text-amber-400">Total Leads</th>
-              <th className="p-3 text-emerald-400">Avg CPL ($)</th>
-              <th className="p-3 text-slate-200">Total Accounts</th>
-              <th className="p-3 text-blue-400">Total FTDs</th>
-              <th className="p-3 text-purple-400">Total Net Deposit ($)</th>
-              <th className="p-3 text-rose-400">Total Lots</th>
+            <tr className="bg-[#071322]/90 text-slate-300 uppercase tracking-wider font-extrabold border-b border-slate-700">
+              <th className="p-3.5 text-[#33CCFF]">Aggregated Week</th>
+              <th className="p-3.5 text-slate-300">Platforms Included</th>
+              <th className="p-3.5 text-white">Total Spend ($)</th>
+              <th className="p-3.5 text-[#33CCFF]">Total Leads</th>
+              <th className="p-3.5 text-[#0AE5D5]">Avg CPL ($)</th>
+              <th className="p-3.5 text-slate-200">Total Accounts</th>
+              <th className="p-3.5 text-sky-300">Total FTDs</th>
+              <th className="p-3.5 text-[#0AE5D5]">Total Net Deposit ($)</th>
+              <th className="p-3.5 text-[#33CCFF]">Total Lots</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80 bg-slate-950/60">
+          <tbody className="divide-y divide-slate-700/60 bg-[#0C2038]/90">
             {aggregatedList.map((g, idx) => {
               const avgCpl = g.leads > 0 ? (g.spend / g.leads) : 0;
               return (
-                <tr key={idx} className="hover:bg-slate-900/60 transition">
-                  <td className="p-3 font-extrabold text-amber-400 font-mono">
+                <tr key={idx} className="hover:bg-[#1E375E]/50 transition">
+                  <td className="p-3.5 font-black text-[#0AE5D5] font-mono text-sm">
                     {g.displayWeek}
                   </td>
-                  <td className="p-3 text-slate-300">
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 font-mono">
+                  <td className="p-3.5 text-slate-300">
+                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#071322] border border-slate-700 font-mono font-medium text-slate-200">
                       {g.channels.length > 0 ? g.channels.join(' + ') : 'All Platforms'}
                     </span>
                   </td>
-                  <td className="p-3 font-bold font-mono text-white">
+                  <td className="p-3.5 font-extrabold font-mono text-white text-sm">
                     ${g.spend.toLocaleString()}
                   </td>
-                  <td className="p-3 font-bold font-mono text-amber-400">
+                  <td className="p-3.5 font-extrabold font-mono text-[#33CCFF] text-sm">
                     {g.leads.toLocaleString()}
                   </td>
-                  <td className="p-3 font-bold font-mono text-emerald-400">
+                  <td className="p-3.5 font-extrabold font-mono text-[#0AE5D5] text-sm">
                     ${avgCpl.toFixed(2)}
                   </td>
-                  <td className="p-3 font-bold font-mono text-slate-200">
+                  <td className="p-3.5 font-bold font-mono text-slate-200">
                     {g.accountOpened.toLocaleString()}
                   </td>
-                  <td className="p-3 font-bold font-mono text-blue-400">
+                  <td className="p-3.5 font-extrabold font-mono text-sky-300">
                     {g.ftd.toLocaleString()}
                   </td>
-                  <td className="p-3 font-extrabold font-mono text-purple-400">
+                  <td className="p-3.5 font-black font-mono text-[#0AE5D5] text-sm">
                     ${g.netDeposit.toLocaleString()}
                   </td>
-                  <td className="p-3 font-bold font-mono text-rose-400">
+                  <td className="p-3.5 font-extrabold font-mono text-[#33CCFF]">
                     {g.lots.toLocaleString()}
                   </td>
                 </tr>
@@ -125,6 +137,7 @@ export default function WeeklyAggregationTable({ kpiRows = [] }) {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }

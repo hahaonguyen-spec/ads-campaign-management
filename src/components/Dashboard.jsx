@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   BarChart3, TrendingUp, DollarSign, Users, Target, Rocket, CalendarClock, 
-  Search, Plus, LayoutGrid, List, ChevronRight, Eye, Trash2, ArrowUpRight, Zap
+  Search, Plus, LayoutGrid, List, ChevronRight, Eye, Trash2, ArrowUpRight, Zap, Calculator
 } from 'lucide-react';
 import CampaignCard from './CampaignCard';
+import WeeklyAggregationTable from './WeeklyAggregationTable';
 import { calculateOverallAnalytics } from '../utils/analytics';
 
 export default function Dashboard({ 
@@ -17,9 +18,12 @@ export default function Dashboard({
 }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [regionFilter, setRegionFilter] = useState('All');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' (box) or 'list'
+  const [viewMode, setViewMode] = useState('grid');
 
   const analytics = calculateOverallAnalytics(campaigns);
+
+  // Combine all KPI rows across all campaigns for global weekly aggregation on main dashboard
+  const allKpiRows = (campaigns || []).flatMap(c => c.kpiTracking || []);
 
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(c => {
@@ -43,21 +47,21 @@ export default function Dashboard({
   return (
     <div className="space-y-6 pb-12 animate-fadeIn">
       
-      {/* EXECUTIVE KPI OVERVIEW CARDS (CPT Emerald Gradient Theme) */}
+      {/* EXECUTIVE KPI OVERVIEW CARDS (Brand Cyan/Turquoise & Deep Navy Theme) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Total Spend */}
-        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Total Spends</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+        <div className="glass-panel p-5 rounded-2xl border border-[#33CCFF]/30 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#33CCFF]/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300">Total Spends</span>
+            <div className="p-2 rounded-xl bg-[#33CCFF]/15 text-[#33CCFF] border border-[#33CCFF]/30">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">${analytics.totalSpend?.toLocaleString()}</span>
-            <span className="text-[11px] font-mono text-emerald-400 font-bold">Active Ads</span>
+            <span className="text-[11px] font-mono text-[#0AE5D5] font-bold">Active Ads</span>
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
             Across {analytics.activeCount} live campaigns
@@ -65,17 +69,17 @@ export default function Dashboard({
         </div>
 
         {/* Card 2: Total CRM Leads */}
-        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Total CRM Leads</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
+        <div className="glass-panel p-5 rounded-2xl border border-[#0AE5D5]/30 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#0AE5D5]/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300">Total CRM Leads</span>
+            <div className="p-2 rounded-xl bg-[#0AE5D5]/15 text-[#0AE5D5] border border-[#0AE5D5]/30">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-amber-400">{analytics.totalLeads?.toLocaleString()}</span>
-            <span className="text-[11px] font-mono font-bold text-emerald-400">${analytics.overallCpl?.toFixed(2)} Avg CPL</span>
+            <span className="text-2xl font-black font-mono text-[#33CCFF]">{analytics.totalLeads?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-[#0AE5D5]">${analytics.overallCpl?.toFixed(2)} Avg CPL</span>
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
             Verified in CRM
@@ -83,17 +87,17 @@ export default function Dashboard({
         </div>
 
         {/* Card 3: First Time Depositors (FTD) */}
-        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">Total FTDs (Traders)</span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/30">
+        <div className="glass-panel p-5 rounded-2xl border border-sky-500/30 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300">Total FTDs (Traders)</span>
+            <div className="p-2 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30">
               <Target className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-blue-300">{analytics.totalFtd?.toLocaleString()}</span>
-            <span className="text-[11px] font-mono font-bold text-blue-400">${analytics.overallCostPerFtd?.toFixed(2)} Cost/FTD</span>
+            <span className="text-2xl font-black font-mono text-sky-200">{analytics.totalFtd?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-[#33CCFF]">${analytics.overallCostPerFtd?.toFixed(2)} Cost/FTD</span>
           </div>
           <div className="text-[10px] text-slate-400 font-mono">
             Conversion: {analytics.ftdConversionRate}%
@@ -101,27 +105,32 @@ export default function Dashboard({
         </div>
 
         {/* Card 4: Net Margin Income (NMI) */}
-        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/30 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-emerald-950/30 to-slate-900/60">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-emerald-400">NMI Net Revenue</span>
-            <div className="p-2 rounded-xl gradient-emerald-bg text-white shadow">
+        <div className="glass-panel p-5 rounded-2xl border border-[#0AE5D5]/40 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038] cpt-glow">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[#0AE5D5]/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-extrabold uppercase tracking-wider text-[11px] text-[#0AE5D5]">NMI Net Revenue</span>
+            <div className="p-2 rounded-xl gradient-cpt-brand text-[#071322] shadow font-black">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-emerald-400">${analytics.totalNmi?.toLocaleString()}</span>
-            <span className="text-[11px] font-mono font-bold text-purple-300">Dep: ${analytics.totalNetDeposit?.toLocaleString()}</span>
+            <span className="text-2xl font-black font-mono text-[#0AE5D5]">${analytics.totalNmi?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-[#33CCFF]">Dep: ${analytics.totalNetDeposit?.toLocaleString()}</span>
           </div>
-          <div className="text-[10px] text-emerald-400 font-mono font-semibold">
-            CPT Margin Revenue
+          <div className="text-[10px] text-[#0AE5D5] font-mono font-bold">
+            CPT Net Revenue Return
           </div>
         </div>
 
       </div>
 
+      {/* AUTOMATED WEEKLY SUBTOTAL SUMMARY TABLE ON MAIN DASHBOARD */}
+      {allKpiRows.length > 0 && (
+        <WeeklyAggregationTable kpiRows={allKpiRows} />
+      )}
+
       {/* FILTER TABS & TOP-RIGHT VIEW MODE SWITCHER */}
-      <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-panel p-4 rounded-2xl border border-[#33CCFF]/20 bg-[#0C2038]/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         {/* Status Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none">
@@ -129,12 +138,12 @@ export default function Dashboard({
             onClick={() => setStatusFilter('All')}
             className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
               statusFilter === 'All'
-                ? 'gradient-emerald-bg text-white shadow-md'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                ? 'gradient-cpt-brand text-[#071322] font-black shadow-md'
+                : 'bg-[#071322] text-slate-300 hover:text-white border border-slate-700'
             }`}
           >
             <span>All Campaigns</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/30 text-white font-mono">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/40 text-white font-mono">
               {campaigns.length}
             </span>
           </button>
@@ -143,13 +152,13 @@ export default function Dashboard({
             onClick={() => setStatusFilter('Launching')}
             className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
               statusFilter === 'Launching'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                ? 'bg-[#0AE5D5]/20 text-[#0AE5D5] border border-[#0AE5D5]/40 shadow-sm'
+                : 'bg-[#071322] text-slate-300 hover:text-white border border-slate-700'
             }`}
           >
-            <Rocket className="w-3.5 h-3.5 text-emerald-400" />
+            <Rocket className="w-3.5 h-3.5 text-[#0AE5D5]" />
             <span>Launching (Live Results)</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/30 text-emerald-300 font-mono">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#0AE5D5]/30 text-[#0AE5D5] font-mono">
               {campaigns.filter(c => c.overview?.status === 'Launching' || (c.kpiTracking && c.kpiTracking.some(r => Number(r.spend) > 0))).length}
             </span>
           </button>
@@ -158,13 +167,13 @@ export default function Dashboard({
             onClick={() => setStatusFilter('Planned')}
             className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
               statusFilter === 'Planned'
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                ? 'bg-[#33CCFF]/20 text-[#33CCFF] border border-[#33CCFF]/40 shadow-sm'
+                : 'bg-[#071322] text-slate-300 hover:text-white border border-slate-700'
             }`}
           >
-            <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
+            <CalendarClock className="w-3.5 h-3.5 text-[#33CCFF]" />
             <span>Planned (Expected Target)</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-mono">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#33CCFF]/30 text-[#33CCFF] font-mono">
               {campaigns.filter(c => c.overview?.status === 'Planned' && (!c.kpiTracking || !c.kpiTracking.some(r => Number(r.spend) > 0))).length}
             </span>
           </button>
@@ -177,7 +186,7 @@ export default function Dashboard({
           <select
             value={regionFilter}
             onChange={(e) => setRegionFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-emerald-500"
+            className="bg-[#071322] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-[#0AE5D5]"
           >
             <option value="All">All Regions</option>
             {regionsList.map(r => (
@@ -186,13 +195,13 @@ export default function Dashboard({
           </select>
 
           {/* VIEW SWITCHER: BOX GRID VS LIST VIEW */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+          <div className="flex items-center p-1 rounded-xl bg-[#071322] border border-slate-700">
             <button
               onClick={() => setViewMode('grid')}
               title="Box / Grid View"
-              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-semibold ${
+              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-bold ${
                 viewMode === 'grid'
-                  ? 'gradient-emerald-bg text-white shadow'
+                  ? 'gradient-cpt-brand text-[#071322] shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -203,9 +212,9 @@ export default function Dashboard({
             <button
               onClick={() => setViewMode('list')}
               title="List View"
-              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-semibold ${
+              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-bold ${
                 viewMode === 'list'
-                  ? 'gradient-emerald-bg text-white shadow'
+                  ? 'gradient-cpt-brand text-[#071322] shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -217,7 +226,7 @@ export default function Dashboard({
           {/* Upload Button */}
           <button
             onClick={onOpenUpload}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold gradient-emerald-bg text-white hover:brightness-110 shadow-lg shadow-emerald-900/20"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] hover:brightness-110 shadow-lg shadow-[#0AE5D5]/20"
           >
             <Plus className="w-4 h-4" />
             <span>Upload Form</span>
@@ -229,9 +238,9 @@ export default function Dashboard({
 
       {/* CAMPAIGNS CONTENT (RENDER BOX GRID OR LIST VIEW) */}
       {filteredCampaigns.length === 0 ? (
-        <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
-          <div className="p-4 rounded-full bg-slate-900 text-slate-500 w-16 h-16 mx-auto flex items-center justify-center border border-slate-800">
-            <Search className="w-8 h-8 text-emerald-400" />
+        <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4 bg-[#0C2038]/80">
+          <div className="p-4 rounded-full bg-[#071322] text-[#0AE5D5] w-16 h-16 mx-auto flex items-center justify-center border border-slate-700">
+            <Search className="w-8 h-8" />
           </div>
           <div>
             <h3 className="text-base font-bold text-white">No CPT Campaigns Found</h3>
@@ -239,7 +248,7 @@ export default function Dashboard({
           </div>
           <button
             onClick={onOpenUpload}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold gradient-emerald-bg text-white shadow-lg"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] shadow-lg"
           >
             <Plus className="w-4 h-4" />
             <span>Upload Campaign Form</span>
@@ -263,24 +272,24 @@ export default function Dashboard({
       ) : (
 
         /* 2. DẠNG LIST (LIST VIEW) */
-        <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden animate-fadeIn">
+        <div className="glass-panel rounded-2xl border border-slate-700 overflow-hidden animate-fadeIn bg-[#0C2038]/90">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900/90 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold">
+                <tr className="bg-[#071322]/90 text-slate-300 border-b border-slate-700 uppercase tracking-wider font-extrabold">
                   <th className="p-4 min-w-[240px]">Campaign Name</th>
                   <th className="p-4 w-32">Status</th>
                   <th className="p-4 w-36">Region / Audience</th>
                   <th className="p-4 w-28">Spend ($)</th>
-                  <th className="p-4 w-24 text-amber-400">Leads</th>
-                  <th className="p-4 w-24 text-emerald-400">CPL ($)</th>
-                  <th className="p-4 w-24 text-blue-400">FTD</th>
-                  <th className="p-4 w-28 text-purple-400">Net Dep ($)</th>
+                  <th className="p-4 w-24 text-[#33CCFF]">Leads</th>
+                  <th className="p-4 w-24 text-[#0AE5D5]">CPL ($)</th>
+                  <th className="p-4 w-24 text-sky-300">FTD</th>
+                  <th className="p-4 w-28 text-[#0AE5D5]">Net Dep ($)</th>
                   <th className="p-4 w-28 text-center">Progress %</th>
                   <th className="p-4 w-28 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80">
+              <tbody className="divide-y divide-slate-700/60">
                 {filteredCampaigns.map(campaign => {
                   const { overview = {}, kpiTracking = [] } = campaign;
                   const totalSpend = kpiTracking.reduce((a, b) => a + (Number(b.spend) || 0), 0);
@@ -294,16 +303,16 @@ export default function Dashboard({
                   const isLive = overview.status === 'Launching' || totalSpend > 0;
 
                   return (
-                    <tr key={campaign.id} className="hover:bg-slate-800/40 transition">
+                    <tr key={campaign.id} className="hover:bg-[#1E375E]/50 transition">
                       
                       {/* Campaign Name */}
                       <td className="p-4">
                         <div
                           onClick={() => onSelectCampaign(campaign)}
-                          className="font-bold text-white text-sm hover:text-emerald-400 cursor-pointer flex items-center gap-1.5 group"
+                          className="font-extrabold text-white text-sm hover:text-[#0AE5D5] cursor-pointer flex items-center gap-1.5 group"
                         >
                           <span>{overview.name || 'Untitled Campaign'}</span>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition" />
+                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#0AE5D5] transition" />
                         </div>
                         <span className="text-[11px] text-slate-400 block mt-0.5">
                           {overview.type} • {overview.owner}
@@ -312,54 +321,54 @@ export default function Dashboard({
 
                       {/* Status */}
                       <td className="p-4">
-                        <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border flex items-center gap-1 w-fit ${
+                        <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border flex items-center gap-1 w-fit ${
                           isLive 
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            ? 'bg-[#0AE5D5]/20 text-[#0AE5D5] border-[#0AE5D5]/40' 
+                            : 'bg-[#33CCFF]/20 text-[#33CCFF] border-[#33CCFF]/40'
                         }`}>
-                          {isLive ? <Rocket className="w-3 h-3 text-emerald-400" /> : <CalendarClock className="w-3 h-3 text-amber-400" />}
+                          {isLive ? <Rocket className="w-3 h-3 text-[#0AE5D5]" /> : <CalendarClock className="w-3 h-3 text-[#33CCFF]" />}
                           <span>{isLive ? 'Launching' : 'Planned'}</span>
                         </span>
                       </td>
 
                       {/* Region */}
                       <td className="p-4">
-                        <span className="text-slate-300 font-medium block">{overview.region || 'Global'}</span>
-                        <span className="text-[10px] text-slate-500 block">{overview.targetAudience}</span>
+                        <span className="text-slate-200 font-medium block">{overview.region || 'Global'}</span>
+                        <span className="text-[10px] text-slate-400 block">{overview.targetAudience}</span>
                       </td>
 
                       {/* Spend */}
-                      <td className="p-4 font-mono font-bold text-white">
+                      <td className="p-4 font-mono font-extrabold text-white">
                         ${totalSpend.toLocaleString()}
                       </td>
 
                       {/* Leads */}
-                      <td className="p-4 font-mono font-bold text-amber-400">
+                      <td className="p-4 font-mono font-extrabold text-[#33CCFF]">
                         {totalLeads.toLocaleString()}
                       </td>
 
                       {/* CPL */}
-                      <td className="p-4 font-mono font-bold text-emerald-400">
+                      <td className="p-4 font-mono font-extrabold text-[#0AE5D5]">
                         ${avgCpl.toFixed(2)}
                       </td>
 
                       {/* FTD */}
-                      <td className="p-4 font-mono font-bold text-blue-400">
+                      <td className="p-4 font-mono font-extrabold text-sky-300">
                         {totalFtd.toLocaleString()}
                       </td>
 
                       {/* Net Deposit */}
-                      <td className="p-4 font-mono font-bold text-purple-400">
+                      <td className="p-4 font-mono font-black text-[#0AE5D5]">
                         ${totalNetDeposit.toLocaleString()}
                       </td>
 
                       {/* Progress % */}
                       <td className="p-4 text-center">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                            <div className="h-full gradient-emerald-bg rounded-full" style={{ width: `${progressPct}%` }}></div>
+                          <div className="flex-1 bg-[#071322] rounded-full h-1.5 overflow-hidden border border-slate-700">
+                            <div className="h-full gradient-cpt-brand rounded-full" style={{ width: `${progressPct}%` }}></div>
                           </div>
-                          <span className="text-[11px] font-mono font-bold text-emerald-400">{progressPct}%</span>
+                          <span className="text-[11px] font-mono font-extrabold text-[#0AE5D5]">{progressPct}%</span>
                         </div>
                       </td>
 
@@ -368,14 +377,14 @@ export default function Dashboard({
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => onSelectCampaign(campaign)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+                            className="p-1.5 rounded-lg bg-[#071322] hover:bg-[#1E375E] text-slate-200 border border-slate-700 transition"
                             title="View Campaign Workspace"
                           >
-                            <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                            <Eye className="w-3.5 h-3.5 text-[#0AE5D5]" />
                           </button>
                           <button
                             onClick={() => onDeleteCampaign(campaign.id)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 border border-slate-700 transition"
+                            className="p-1.5 rounded-lg bg-[#071322] hover:bg-[#1E375E] text-slate-400 hover:text-red-400 border border-slate-700 transition"
                             title="Delete Campaign"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
