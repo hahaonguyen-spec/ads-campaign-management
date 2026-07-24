@@ -1,5 +1,6 @@
 import React from 'react';
-import { FileText, Award, DollarSign, Target, TrendingUp, CheckCircle2, AlertTriangle, Printer, Download } from 'lucide-react';
+import { FileText, Award, DollarSign, Target, TrendingUp, CheckCircle2, AlertTriangle, Printer, Calculator } from 'lucide-react';
+import WeeklyAggregationTable from './WeeklyAggregationTable';
 
 export default function MonthlyReviewReport({ campaign }) {
   const { overview = {}, kpiTracking = [] } = campaign;
@@ -71,8 +72,6 @@ export default function MonthlyReviewReport({ campaign }) {
           </span>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            {/* Metric 1: Leads */}
             <div className="p-4 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-amber-400 font-bold">1. Verified Leads</span>
@@ -88,7 +87,6 @@ export default function MonthlyReviewReport({ campaign }) {
               <p className="text-[10px] text-slate-400 font-mono">Average CPL: ${avgCpl.toFixed(2)}</p>
             </div>
 
-            {/* Metric 2: FTD */}
             <div className="p-4 rounded-xl bg-slate-900/80 border border-blue-500/30 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-blue-400 font-bold">2. First Time Depositors (FTD)</span>
@@ -104,7 +102,6 @@ export default function MonthlyReviewReport({ campaign }) {
               <p className="text-[10px] text-slate-400 font-mono">Cost Per FTD: ${costPerFtd.toFixed(2)}</p>
             </div>
 
-            {/* Metric 3: NMI */}
             <div className="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-emerald-400 font-bold">3. Net Margin Income (NMI)</span>
@@ -119,12 +116,14 @@ export default function MonthlyReviewReport({ campaign }) {
               </div>
               <p className="text-[10px] text-slate-400 font-mono">Net Deposit: ${actualNetDeposit.toLocaleString()}</p>
             </div>
-
           </div>
         </div>
       </div>
 
-      {/* COST VS RETURN RATIO (Campaign Costs VS NMI) */}
+      {/* AUTOMATED WEEKLY SUBTOTAL SUMMARY */}
+      <WeeklyAggregationTable kpiRows={kpiTracking} />
+
+      {/* COST VS RETURN RATIO */}
       <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
         <h4 className="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
           <span>Campaign Costs (Marketing Spend + Credit Bonus) VS NMI Return</span>
@@ -132,91 +131,25 @@ export default function MonthlyReviewReport({ campaign }) {
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-          
           <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
             <span className="text-slate-400 text-[10px] uppercase block">Paid Marketing Spend</span>
             <span className="text-base font-bold font-mono text-white block mt-0.5">${totalMarketingSpend.toLocaleString()}</span>
-            <span className="text-[10px] text-slate-500 block">Ad Platform Budget</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
             <span className="text-slate-400 text-[10px] uppercase block">Credit Bonus / Incentives</span>
             <span className="text-base font-bold font-mono text-amber-400 block mt-0.5">${creditBonusCost.toLocaleString()}</span>
-            <span className="text-[10px] text-slate-500 block">Client Bonus Cost</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
             <span className="text-slate-400 text-[10px] uppercase block">Total Campaign Costs</span>
             <span className="text-base font-extrabold font-mono text-rose-400 block mt-0.5">${totalCampaignCost.toLocaleString()}</span>
-            <span className="text-[10px] text-slate-500 block">Marketing + Bonus</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-900/60 border border-emerald-500/30 bg-emerald-500/5">
             <span className="text-emerald-400 text-[10px] uppercase block font-bold">NMI Net Revenue</span>
             <span className="text-base font-extrabold font-mono text-emerald-400 block mt-0.5">${actualNmi.toLocaleString()}</span>
-            <span className="text-[10px] text-emerald-500/80 block font-mono">Gain: +${(actualNmi - totalCampaignCost).toLocaleString()}</span>
           </div>
-
-        </div>
-      </div>
-
-      {/* FULL CONVERSION FUNNEL (Leads > KYC > FTD > FTT > Gross Deposits > Net Deposits > Trading Lots) */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
-        <h4 className="text-sm font-bold text-white border-b border-slate-800 pb-3">
-          Full Expected ROI Funnel Breakdown (Leads &gt; KYC &gt; FTD &gt; FTT &gt; Deposits &gt; Lots)
-        </h4>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-center text-xs">
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase block">1. Leads</span>
-            <span className="font-bold font-mono text-amber-400 block text-base mt-1">{actualLeads.toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase block">2. KYC Verified</span>
-            <span className="font-bold font-mono text-slate-200 block text-base mt-1">{kpiTracking.reduce((a, b) => a + (Number(b.kyc) || 0), 0).toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
-            <span className="text-[10px] text-blue-400 uppercase block font-bold">3. FTD *</span>
-            <span className="font-bold font-mono text-blue-300 block text-base mt-1">{actualFtd.toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase block">4. FTT</span>
-            <span className="font-bold font-mono text-slate-200 block text-base mt-1">{kpiTracking.reduce((a, b) => a + (Number(b.ftt) || 0), 0).toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase block">5. Gross Dep ($)</span>
-            <span className="font-bold font-mono text-slate-300 block text-base mt-1">${kpiTracking.reduce((a, b) => a + (Number(b.grossDeposit) || 0), 0).toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30">
-            <span className="text-[10px] text-purple-400 uppercase block font-bold">6. Net Dep ($)</span>
-            <span className="font-bold font-mono text-purple-300 block text-base mt-1">${actualNetDeposit.toLocaleString()}</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
-            <span className="text-[10px] text-rose-400 uppercase block font-bold">7. Lots (Volume)</span>
-            <span className="font-bold font-mono text-rose-300 block text-base mt-1">{actualLots.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* PAID TEAM FEASIBILITY & APPROVAL SIGN-OFF */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-3">
-        <h4 className="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
-          <span>Paid Media Team Feasibility & Practicality Assessment</span>
-          <span className="text-xs font-bold px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            {overview.paidTeamFeasibility || 'Approved & Feasible'}
-          </span>
-        </h4>
-
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 space-y-2">
-          <p>
-            <strong>Assessment Notes:</strong> The paid media team evaluated channel reach ({overview.channels}), target audience parameters ({overview.targetAudience}), and expected CPM/CPA benchmarks (${overview.cpmTarget || 12.50} CPM / ${overview.cpaTarget || 45.00} CPA). The campaign is assessed as practical and approved for execution.
-          </p>
         </div>
       </div>
 

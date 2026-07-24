@@ -9,6 +9,8 @@ import AIInsights from './AIInsights';
 import AdPluginModal from './AdPluginModal';
 import WebinarTracker from './WebinarTracker';
 import MonthlyReviewReport from './MonthlyReviewReport';
+import WeeklyAggregationTable from './WeeklyAggregationTable';
+import BudgetManager from './BudgetManager';
 
 export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onOpenMetricInput }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -22,10 +24,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
       return campaign.kpiTracking;
     }
     return [
-      { week: 'Week 1', channel: 'Meta Ads', spend: 0, impressions: 0, clicks: 0, leads: 0, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 },
-      { week: 'Week 2', channel: 'Meta Ads', spend: 0, impressions: 0, clicks: 0, leads: 0, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 },
-      { week: 'Week 3', channel: 'Google Ads', spend: 0, impressions: 0, clicks: 0, leads: 0, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 },
-      { week: 'Week 4', channel: 'TikTok Ads', spend: 0, impressions: 0, clicks: 0, leads: 0, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 }
+      { week: '1', channel: 'Meta Ads', spend: 100, impressions: 0, clicks: 0, leads: 100, cpl: 1, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 1000, lots: 0, nmi: 250 },
+      { week: '1', channel: 'TikTok Ads', spend: 0, impressions: 0, clicks: 0, leads: 200, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 },
+      { week: '3', channel: 'Google Search', spend: 200, impressions: 0, clicks: 0, leads: 0, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 200, lots: 0, nmi: 50 },
+      { week: '2', channel: 'Google Search', spend: 0, impressions: 0, clicks: 0, leads: 300, cpl: 0, accountOpened: 0, kyc: 0, ftd: 0, ftt: 0, grossDeposit: 0, netDeposit: 0, lots: 0, nmi: 0 }
     ];
   });
 
@@ -125,10 +127,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
 
   const handlePopulateSampleKpi = () => {
     const sampleKpi = [
-      { week: 'Week 1', campaign: overview.name, channel: 'Meta Ads', spend: 2500, impressions: 180000, clicks: 3900, leads: 340, cpl: 7.35, accountOpened: 180, kyc: 120, ftd: 48, ftt: 42, grossDeposit: 24000, netDeposit: 22000, lots: 520, nmi: 5500, syncedFromPlugin: true },
-      { week: 'Week 2', campaign: overview.name, channel: 'Meta Ads', spend: 2800, impressions: 210000, clicks: 4500, leads: 410, cpl: 6.83, accountOpened: 220, kyc: 155, ftd: 62, ftt: 58, grossDeposit: 35000, netDeposit: 31000, lots: 740, nmi: 7750, syncedFromPlugin: true },
-      { week: 'Week 3', campaign: overview.name, channel: 'Google Ads', spend: 3200, impressions: 95000, clicks: 3100, leads: 360, cpl: 8.89, accountOpened: 205, kyc: 140, ftd: 75, ftt: 68, grossDeposit: 52000, netDeposit: 48000, lots: 980, nmi: 12000, syncedFromPlugin: true },
-      { week: 'Week 4', campaign: overview.name, channel: 'TikTok Ads', spend: 3000, impressions: 90000, clicks: 2900, leads: 330, cpl: 9.09, accountOpened: 190, kyc: 130, ftd: 68, ftt: 61, grossDeposit: 44000, netDeposit: 41000, lots: 860, nmi: 10250, syncedFromPlugin: true }
+      { week: '1', campaign: overview.name, channel: 'Meta Ads', spend: 2500, impressions: 180000, clicks: 3900, leads: 340, cpl: 7.35, accountOpened: 180, kyc: 120, ftd: 48, ftt: 42, grossDeposit: 24000, netDeposit: 22000, lots: 520, nmi: 5500, syncedFromPlugin: true },
+      { week: '1', campaign: overview.name, channel: 'TikTok Ads', spend: 2800, impressions: 210000, clicks: 4500, leads: 410, cpl: 6.83, accountOpened: 220, kyc: 155, ftd: 62, ftt: 58, grossDeposit: 35000, netDeposit: 31000, lots: 740, nmi: 7750, syncedFromPlugin: true },
+      { week: '2', campaign: overview.name, channel: 'Google Search', spend: 3200, impressions: 95000, clicks: 3100, leads: 360, cpl: 8.89, accountOpened: 205, kyc: 140, ftd: 75, ftt: 68, grossDeposit: 52000, netDeposit: 48000, lots: 980, nmi: 12000, syncedFromPlugin: true },
+      { week: '3', campaign: overview.name, channel: 'Google Search', spend: 3000, impressions: 90000, clicks: 2900, leads: 330, cpl: 9.09, accountOpened: 190, kyc: 130, ftd: 68, ftt: 61, grossDeposit: 44000, netDeposit: 41000, lots: 860, nmi: 10250, syncedFromPlugin: true }
     ];
     setKpiRows(sampleKpi);
     onUpdateCampaign({
@@ -139,9 +141,8 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
   };
 
   const handleAddKpiWeekRow = () => {
-    const newWeekNum = kpiRows.length + 1;
     const newRow = {
-      week: `Week ${newWeekNum}`,
+      week: '1',
       campaign: overview.name,
       channel: 'Meta Ads',
       spend: 0,
@@ -353,7 +354,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
       <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-xs font-semibold scrollbar-none">
         {[
           { id: 'overview', label: 'Brief & Strategy', icon: <FileText className="w-4 h-4" /> },
-          { id: 'kpi', label: `KPI Matrix (${kpiRows.length} Weeks)`, icon: <BarChart3 className="w-4 h-4" /> },
+          { id: 'kpi', label: `KPI Matrix (${kpiRows.length} Rows)`, icon: <BarChart3 className="w-4 h-4" /> },
           { id: 'report', label: 'Monthly & End Review Report', icon: <Award className="w-4 h-4" /> },
           { id: 'timeline', label: `Execution Schedule (${timelineList.length})`, icon: <Clock className="w-4 h-4" /> },
           { id: 'deliverables', label: `Deliverables (${deliverablesList.length})`, icon: <CheckCircle2 className="w-4 h-4" /> },
@@ -438,7 +439,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 2: KPI PERFORMANCE MATRIX (WITH TYPABLE WEEK, PLATFORM DROPDOWN & DRAG-AND-DROP ROW REORDERING) */}
+      {/* TAB 2: KPI PERFORMANCE MATRIX (RAW INPUT + AUTOMATED WEEKLY SUBTOTAL AGGREGATION SUMMARY) */}
       {activeTab === 'kpi' && (
         <div className="space-y-6 animate-fadeIn">
           
@@ -450,16 +451,19 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
             <KPIChart data={kpiRows} type="weeklyTrend" />
           </div>
 
+          {/* AUTOMATED WEEKLY SUBTOTAL AGGREGATION SUMMARY CARD */}
+          <WeeklyAggregationTable kpiRows={kpiRows} />
+
           <div className="flex justify-between items-center flex-wrap gap-3">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                Weekly KPI Tracking Matrix
+                Weekly KPI Tracking Matrix (Raw Multi-Platform Entries)
                 <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  Editable Week • Platform Dropdown • Drag to Reorder
+                  Editable Week • Platform Select • Drag to Reorder
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Type week text freely, choose ad platform (Meta, TikTok, Google, Other), and drag <GripVertical className="w-3 h-3 inline text-amber-400" /> handles to reorder rows!
+                Type week freely, choose platform (Meta, TikTok, Google, Other), and drag <GripVertical className="w-3 h-3 inline text-amber-400" /> handles to reorder rows!
               </p>
             </div>
             
@@ -535,23 +539,20 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                       onDrop={(e) => handleDrop(e, idx)}
                       className={`hover:bg-slate-800/60 transition ${draggedRowIndex === idx ? 'opacity-40 bg-amber-500/10' : ''}`}
                     >
-                      {/* Drag Handle */}
                       <td className="p-2 text-center cursor-grab active:cursor-grabbing text-slate-500 hover:text-amber-400">
                         <GripVertical className="w-4 h-4 mx-auto" />
                       </td>
 
-                      {/* Week (Freeform Input) */}
                       <td className="p-2">
                         <input
                           type="text"
                           value={row.week || ''}
                           onChange={(e) => handleKpiCellChange(idx, 'week', e.target.value)}
-                          placeholder="e.g. Week 1"
+                          placeholder="e.g. 1"
                           className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2.5 py-1 text-xs font-bold text-white focus:border-amber-400"
                         />
                       </td>
 
-                      {/* Platform (Dropdown Select + Custom Text Option) */}
                       <td className="p-2 border-r border-slate-800 space-y-1">
                         <select
                           value={isCustomPlatform ? 'Other' : currentChannel}
@@ -571,19 +572,17 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                           <option value="Other">Other (Custom Type...)</option>
                         </select>
 
-                        {/* If Other selected, show custom text input */}
                         {isCustomPlatform && (
                           <input
                             type="text"
                             value={currentChannel}
                             onChange={(e) => handleKpiCellChange(idx, 'channel', e.target.value)}
-                            placeholder="Type custom platform name..."
+                            placeholder="Type custom platform..."
                             className="w-full bg-slate-950 border border-emerald-500/50 rounded px-2 py-0.5 text-[11px] text-emerald-300 font-mono"
                           />
                         )}
                       </td>
 
-                      {/* Spend */}
                       <td className="p-2 bg-slate-900/20">
                         <input
                           type="number"
@@ -595,7 +594,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* Impressions */}
                       <td className="p-2 bg-slate-900/20">
                         <input
                           type="number"
@@ -606,7 +604,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* Clicks */}
                       <td className="p-2 border-r border-slate-800 bg-slate-900/20">
                         <input
                           type="number"
@@ -617,7 +614,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* CRM Verified Leads */}
                       <td className="p-2 bg-amber-500/5">
                         <input
                           type="number"
@@ -628,12 +624,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* CPL */}
                       <td className="p-3 font-mono font-bold text-emerald-400">
                         ${row.cpl?.toFixed(2) || '0.00'}
                       </td>
 
-                      {/* Accounts Opened */}
                       <td className="p-2">
                         <input
                           type="number"
@@ -644,7 +638,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* FTDs */}
                       <td className="p-2">
                         <input
                           type="number"
@@ -655,7 +648,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* Net Deposit */}
                       <td className="p-2">
                         <input
                           type="number"
@@ -667,7 +659,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         />
                       </td>
 
-                      {/* Action Delete */}
                       <td className="p-2 text-center">
                         <button
                           onClick={() => handleDeleteKpiRow(idx)}
@@ -897,25 +888,9 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 7: BUDGET */}
+      {/* TAB 7: EDITABLE BUDGET ALLOCATION WITH AUDIT LOG */}
       {activeTab === 'budget' && (
-        <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 animate-fadeIn">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <DollarSign className="w-4 h-4 text-emerald-400" />
-            Budget Breakdown
-          </h3>
-          <div className="space-y-3">
-            {budget.map((b, idx) => (
-              <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-white">{b.item}</h4>
-                  <p className="text-[11px] text-slate-400">{b.note}</p>
-                </div>
-                <span className="text-sm font-extrabold font-mono text-emerald-400">${b.usd?.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <BudgetManager campaign={campaign} onUpdateCampaign={onUpdateCampaign} />
       )}
 
       {/* Ad Plugin Auto-Sync Modal */}
