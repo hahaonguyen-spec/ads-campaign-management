@@ -15,10 +15,18 @@ export default function App() {
   const [metricModalCampaign, setMetricModalCampaign] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Clear legacy sample data cache once
+  useEffect(() => {
+    if (!localStorage.getItem('cpt_sample_cleared_v1')) {
+      localStorage.clear();
+      localStorage.setItem('cpt_sample_cleared_v1', 'true');
+    }
+  }, []);
+
   // Load saved campaigns from IndexedDB / Permanent Local Storage on startup
   useEffect(() => {
     async function initStorage() {
-      const data = await loadCampaignsFromPermanentStorage(INITIAL_CAMPAIGNS);
+      const data = await loadCampaignsFromPermanentStorage([]);
       setCampaigns(data);
       setIsLoaded(true);
     }
@@ -48,10 +56,12 @@ export default function App() {
   };
 
   const handleResetDemo = () => {
-    if (confirm('Load pre-filled example CPT campaigns? Uploaded campaigns will be retained.')) {
-      setCampaigns(INITIAL_CAMPAIGNS);
+    if (confirm('Clear all local campaigns and start fresh?')) {
+      localStorage.clear();
+      localStorage.setItem('cpt_sample_cleared_v1', 'true');
+      setCampaigns([]);
       setSelectedCampaignId(null);
-      saveCampaignsToPermanentStorage(INITIAL_CAMPAIGNS);
+      saveCampaignsToPermanentStorage([]);
     }
   };
 
@@ -72,7 +82,7 @@ export default function App() {
       <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center p-6 text-slate-100 font-sans">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-slate-400">Loading saved CPT campaigns from local database...</p>
+          <p className="text-xs text-slate-400">Loading CPT Campaign System...</p>
         </div>
       </div>
     );
@@ -130,7 +140,7 @@ export default function App() {
           <span>CPT Ads Campaign Management & Performance System</span>
           <span className="text-emerald-400 font-medium flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Permanent Local Storage Active (IndexedDB)
+            System Storage Ready
           </span>
         </div>
       </footer>

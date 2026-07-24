@@ -7,7 +7,7 @@ const STORE_NAME = 'campaigns';
 const DB_VERSION = 1;
 
 function openDB() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!window.indexedDB) {
       resolve(null);
       return;
@@ -35,21 +35,20 @@ function openDB() {
 export async function saveCampaignsToPermanentStorage(campaigns) {
   if (!Array.isArray(campaigns)) return;
 
-  // 1. Save to LocalStorage as instant backup
+  // 1. Save to LocalStorage
   try {
-    localStorage.setItem('cpt_ads_campaigns_permanent_v1', JSON.stringify(campaigns));
+    localStorage.setItem('cpt_ads_campaigns_user_v1', JSON.stringify(campaigns));
   } catch (e) {
-    console.warn('LocalStorage limit reached, relying on IndexedDB:', e);
+    console.warn('LocalStorage save warning:', e);
   }
 
-  // 2. Save to IndexedDB for high capacity storage
+  // 2. Save to IndexedDB
   try {
     const db = await openDB();
     if (!db) return;
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
 
-    // clear and put all
     await new Promise((res, rej) => {
       const clearReq = store.clear();
       clearReq.onsuccess = () => res();
@@ -65,19 +64,18 @@ export async function saveCampaignsToPermanentStorage(campaigns) {
 }
 
 /**
- * Loads all saved campaigns from IndexedDB / LocalStorage
+ * Loads all user campaigns from IndexedDB / LocalStorage
  */
 export async function loadCampaignsFromPermanentStorage(defaultSeedData = []) {
   let loaded = null;
 
-  // 1. Try loading from IndexedDB first
   try {
     const db = await openDB();
     if (db) {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const allReq = store.getAll();
-      loaded = await new Promise((res, rej) => {
+      loaded = await new Promise((res) => {
         allReq.onsuccess = () => res(allReq.result);
         allReq.onerror = () => res(null);
       });
@@ -86,26 +84,20 @@ export async function loadCampaignsFromPermanentStorage(defaultSeedData = []) {
     console.warn('IndexedDB read failed:', e);
   }
 
-  // 2. Fallback to LocalStorage if IndexedDB was empty or failed
-  if (!loaded || loaded.length === 0) {
-    try {
-      const savedLs = localStorage.getItem('cpt_ads_campaigns_permanent_v1') || 
-                      localStorage.getItem('cpt_ads_campaigns_v3') || 
-                      localStorage.getItem('cpt_ads_campaigns_v2');
-      if (savedLs) {
-        const parsed = JSON.parse(savedLs);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          loaded = parsed;
-        }
-      }
-    } catch (e) {
-      console.warn('LocalStorage read failed:', e);
-    }
+  if (loaded && Array.isArray(loaded)) {
+    return loaded;
   }
 
-  // Return loaded campaigns or default seed data
-  if (loaded && Array.isArray(loaded) && loaded.length > 0) {
-    return loaded;
+  try {
+    const savedLs = localStorage.getItem('cpt_ads_campaigns_user_v1');
+    if (savedLs) {
+      const parsed = JSON.parse(savedLs);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('LocalStorage read failed:', e);
   }
 
   return defaultSeedData;
