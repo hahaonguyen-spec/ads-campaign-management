@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { 
   ArrowLeft, Calendar, User, Globe, DollarSign, Target, Copy, Check, 
   ExternalLink, Layers, ShieldAlert, FileText, CheckCircle2, Clock, 
-  Plus, Save, BarChart3, Rocket, CalendarClock, PlusCircle, Trash2, Edit3, Sparkles, TrendingUp, Zap, ShieldCheck
+  Plus, Save, BarChart3, Rocket, CalendarClock, PlusCircle, Trash2, Edit3, Sparkles, TrendingUp, Zap, ShieldCheck, Video, Award
 } from 'lucide-react';
 import KPIChart from './KPIChart';
 import AIInsights from './AIInsights';
 import AdPluginModal from './AdPluginModal';
+import WebinarTracker from './WebinarTracker';
+import MonthlyReviewReport from './MonthlyReviewReport';
 
 export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onOpenMetricInput }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -29,9 +31,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
   const [deliverablesList, setDeliverablesList] = useState(campaign?.deliverables || []);
   const [timelineList, setTimelineList] = useState(campaign?.timeline || []);
 
-  const { overview = {}, budget = [], webinarTracking } = campaign || {};
+  const { overview = {}, budget = [] } = campaign || {};
 
   const isPlanned = overview?.status === 'Planned';
+  const isWebinarType = (overview?.type || '').toLowerCase().includes('webinar') || (overview?.mechanics || '').toLowerCase().includes('webinar') || campaign?.webinarTracking;
 
   // Calculate actuals
   const totalSpend = kpiRows.reduce((a, b) => a + (Number(b.spend) || 0), 0);
@@ -40,6 +43,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
   const totalGrossDeposit = kpiRows.reduce((a, b) => a + (Number(b.grossDeposit) || 0), 0);
   const totalNetDeposit = kpiRows.reduce((a, b) => a + (Number(b.netDeposit) || 0), 0);
   const totalLots = kpiRows.reduce((a, b) => a + (Number(b.lots) || 0), 0);
+  const totalNmi = kpiRows.reduce((a, b) => a + (Number(b.nmi) || 0), 0) || Math.round(totalNetDeposit * 0.25);
   const avgCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
 
   // Expected Outcome targets
@@ -49,7 +53,8 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
     targetCpl: 8.00,
     targetFtd: 50,
     targetNetDeposit: 25000,
-    targetLots: 500
+    targetLots: 500,
+    targetNmi: 6250
   };
 
   const handleCopyLink = () => {
@@ -60,7 +65,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
     }
   };
 
-  // KPI cell change
   const handleKpiCellChange = (index, field, value) => {
     const updated = [...kpiRows];
     const numVal = parseFloat(value) || 0;
@@ -87,10 +91,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
 
   const handlePopulateSampleKpi = () => {
     const sampleKpi = [
-      { week: 'Week 1', campaign: overview.name, channel: 'Meta Ads Plugin', spend: 2500, impressions: 180000, clicks: 3900, leads: 340, cpl: 7.35, accountOpened: 180, kyc: 120, ftd: 48, ftt: 42, grossDeposit: 24000, netDeposit: 22000, lots: 520, nmi: 14000, syncedFromPlugin: true },
-      { week: 'Week 2', campaign: overview.name, channel: 'Meta Ads Plugin', spend: 2800, impressions: 210000, clicks: 4500, leads: 410, cpl: 6.83, accountOpened: 220, kyc: 155, ftd: 62, ftt: 58, grossDeposit: 35000, netDeposit: 31000, lots: 740, nmi: 19000, syncedFromPlugin: true },
-      { week: 'Week 3', campaign: overview.name, channel: 'Google Ads Plugin', spend: 3200, impressions: 95000, clicks: 3100, leads: 360, cpl: 8.89, accountOpened: 205, kyc: 140, ftd: 75, ftt: 68, grossDeposit: 52000, netDeposit: 48000, lots: 980, nmi: 26000, syncedFromPlugin: true },
-      { week: 'Week 4', campaign: overview.name, channel: 'Google Ads Plugin', spend: 3000, impressions: 90000, clicks: 2900, leads: 330, cpl: 9.09, accountOpened: 190, kyc: 130, ftd: 68, ftt: 61, grossDeposit: 44000, netDeposit: 41000, lots: 860, nmi: 22000, syncedFromPlugin: true }
+      { week: 'Week 1', campaign: overview.name, channel: 'Meta Ads Plugin', spend: 2500, impressions: 180000, clicks: 3900, leads: 340, cpl: 7.35, accountOpened: 180, kyc: 120, ftd: 48, ftt: 42, grossDeposit: 24000, netDeposit: 22000, lots: 520, nmi: 5500, syncedFromPlugin: true },
+      { week: 'Week 2', campaign: overview.name, channel: 'Meta Ads Plugin', spend: 2800, impressions: 210000, clicks: 4500, leads: 410, cpl: 6.83, accountOpened: 220, kyc: 155, ftd: 62, ftt: 58, grossDeposit: 35000, netDeposit: 31000, lots: 740, nmi: 7750, syncedFromPlugin: true },
+      { week: 'Week 3', campaign: overview.name, channel: 'Google Ads Plugin', spend: 3200, impressions: 95000, clicks: 3100, leads: 360, cpl: 8.89, accountOpened: 205, kyc: 140, ftd: 75, ftt: 68, grossDeposit: 52000, netDeposit: 48000, lots: 980, nmi: 12000, syncedFromPlugin: true },
+      { week: 'Week 4', campaign: overview.name, channel: 'Google Ads Plugin', spend: 3000, impressions: 90000, clicks: 2900, leads: 330, cpl: 9.09, accountOpened: 190, kyc: 130, ftd: 68, ftt: 61, grossDeposit: 44000, netDeposit: 41000, lots: 860, nmi: 10250, syncedFromPlugin: true }
     ];
     setKpiRows(sampleKpi);
     onUpdateCampaign({
@@ -194,7 +198,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
       
-      {/* Top Header Bar */}
+      {/* Top Header Bar with CPT-I Standard Badges */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-5 rounded-2xl border border-slate-800">
         <div className="flex items-center gap-4">
           <button
@@ -221,23 +225,23 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                 <span>{overview?.status || 'Planned'} (Click to toggle)</span>
               </button>
 
-              <span className="text-[10px] font-medium text-slate-400 bg-slate-900 px-2.5 py-0.5 rounded-full border border-slate-800">
-                {overview?.region || 'Global'}
+              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                CPT-I Online Approval Standard
               </span>
             </div>
+            
             <p className="text-xs text-slate-400 flex items-center gap-3 flex-wrap">
-              <span>Owner: <strong className="text-slate-200 font-medium">{overview?.owner}</strong></span>
-              <span>•</span>
-              <span>Type: <strong className="text-slate-200 font-medium">{overview?.type}</strong></span>
-              <span>•</span>
               <span>Duration: <strong className="text-slate-200 font-medium">{overview?.duration}</strong></span>
+              <span>•</span>
+              <span>Target Audience: <strong className="text-slate-200 font-medium">{overview?.targetAudience}</strong></span>
+              <span>•</span>
+              <span>Feasibility: <strong className="text-emerald-400 font-medium">{overview?.paidTeamFeasibility || 'Feasible & Approved'}</strong></span>
             </p>
           </div>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          
           <button
             onClick={() => setIsAdPluginOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition"
@@ -266,12 +270,53 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       </div>
 
+      {/* MANDATED KEY METRICS HIGHLIGHTS (CPT-I: Leads, FTD, NMI) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        
+        {/* 1. Leads */}
+        <div className="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-1">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-amber-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 1: Leads</span>
+            <span className="text-slate-400 font-mono text-[11px]">Target: {expected.targetLeads?.toLocaleString()}</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black font-mono text-white">{totalLeads.toLocaleString()}</span>
+            <span className="text-xs font-bold font-mono text-amber-400">${avgCpl.toFixed(2)} Avg CPL</span>
+          </div>
+        </div>
+
+        {/* 2. FTD */}
+        <div className="glass-card p-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 space-y-1">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-blue-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 2: FTD</span>
+            <span className="text-slate-400 font-mono text-[11px]">Target: {expected.targetFtd?.toLocaleString()}</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black font-mono text-blue-300">{totalFtd.toLocaleString()}</span>
+            <span className="text-xs font-bold font-mono text-blue-400">${totalFtd > 0 ? (totalSpend / totalFtd).toFixed(2) : '0.00'} Cost/FTD</span>
+          </div>
+        </div>
+
+        {/* 3. NMI */}
+        <div className="glass-card p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-1">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-emerald-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 3: NMI (Net Margin)</span>
+            <span className="text-slate-400 font-mono text-[11px]">Target: ${expected.targetNmi?.toLocaleString()}</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black font-mono text-emerald-400">${totalNmi.toLocaleString()}</span>
+            <span className="text-xs font-bold font-mono text-emerald-300">Net Dep: ${totalNetDeposit.toLocaleString()}</span>
+          </div>
+        </div>
+
+      </div>
+
       {/* Target vs Actual Comparison Gauge Banner */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 bg-slate-900/80">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-bold text-white">Expected Outcome Targets vs Current Results</h3>
+            <h3 className="text-sm font-bold text-white">Expected Targets vs Current Results</h3>
           </div>
           <span className="text-[11px] font-mono text-slate-400">
             {isPlanned ? 'Status: Planned (Expected Outcome View)' : 'Status: Live Launching'}
@@ -280,7 +325,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
           <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Budget ($)</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Campaign Costs ($)</span>
             <span className="text-xs font-bold font-mono text-white block">Actual: ${totalSpend.toLocaleString()}</span>
             <span className="text-[10px] text-slate-400 block font-mono">Target: ${expected.targetBudget.toLocaleString()}</span>
           </div>
@@ -304,9 +349,9 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
           </div>
 
           <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Net Deposit ($)</span>
-            <span className="text-xs font-bold font-mono text-purple-400 block">Actual: ${totalNetDeposit.toLocaleString()}</span>
-            <span className="text-[10px] text-slate-400 block font-mono">Target: ${expected.targetNetDeposit.toLocaleString()}</span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block">NMI Revenue ($)</span>
+            <span className="text-xs font-bold font-mono text-purple-400 block">Actual: ${totalNmi.toLocaleString()}</span>
+            <span className="text-[10px] text-slate-400 block font-mono">Target: ${expected.targetNmi.toLocaleString()}</span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
@@ -324,10 +369,12 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
       <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-xs font-semibold scrollbar-none">
         {[
           { id: 'overview', label: 'Brief & Strategy', icon: <FileText className="w-4 h-4" /> },
-          { id: 'kpi', label: `KPI Performance Matrix (${kpiRows.length} Weeks)`, icon: <BarChart3 className="w-4 h-4" /> },
+          { id: 'kpi', label: `KPI Matrix (${kpiRows.length} Weeks)`, icon: <BarChart3 className="w-4 h-4" /> },
+          { id: 'report', label: 'Monthly & End Review Report', icon: <Award className="w-4 h-4" /> },
           { id: 'timeline', label: `Execution Schedule (${timelineList.length})`, icon: <Clock className="w-4 h-4" /> },
           { id: 'deliverables', label: `Deliverables (${deliverablesList.length})`, icon: <CheckCircle2 className="w-4 h-4" /> },
-          { id: 'budget', label: 'Budget Allocations', icon: <DollarSign className="w-4 h-4" /> }
+          { id: 'budget', label: 'Budget Allocations', icon: <DollarSign className="w-4 h-4" /> },
+          ...(isWebinarType ? [{ id: 'webinar', label: 'Webinar 2-Tier Tracking', icon: <Video className="w-4 h-4" /> }] : [])
         ].map(tab => (
           <button
             key={tab.id}
@@ -346,29 +393,37 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
 
       {/* TAB CONTENTS */}
 
-      {/* TAB 1: OVERVIEW BRIEF */}
+      {/* TAB 1: OVERVIEW BRIEF & APPROVAL DETAILS */}
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
           <div className="lg:col-span-2 space-y-6">
+            
+            {/* Approval Parameters & Condensed Summary */}
             <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
                 <Target className="w-4 h-4 text-amber-400" />
-                Expected Target Outcome & Primary KPI
+                CPT-I Condensed Approval Brief & Parameters
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1">
-                  <span className="text-amber-400 uppercase tracking-wider text-[10px] block font-bold">Target Leads & CPL</span>
-                  <p className="text-white font-bold leading-relaxed">
-                    {expected.targetLeads.toLocaleString()} Leads @ ${expected.targetCpl.toFixed(2)} Target CPL
-                  </p>
+                <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">Campaign Duration</span>
+                  <p className="text-white font-bold">{overview.duration}</p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-1">
-                  <span className="text-blue-400 uppercase tracking-wider text-[10px] block font-bold">Expected Traders (FTDs)</span>
-                  <p className="text-white font-bold leading-relaxed">
-                    {expected.targetFtd.toLocaleString()} FTDs & ${expected.targetNetDeposit.toLocaleString()} Expected Deposit
-                  </p>
+                <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">Target Audience & Segment</span>
+                  <p className="text-amber-400 font-bold">{overview.targetAudience}</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">Distribution Channels</span>
+                  <p className="text-slate-200 font-medium">{overview.channels}</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 uppercase tracking-wider text-[10px] block font-semibold">Paid Team Feasibility Sign-off</span>
+                  <p className="text-emerald-400 font-bold">{overview.paidTeamFeasibility || 'Feasible & Practical'}</p>
                 </div>
 
                 <div className="md:col-span-2 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
@@ -378,10 +433,11 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
               </div>
             </div>
 
+            {/* Campaign Mechanics & Conversion Funnel */}
             <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
                 <Layers className="w-4 h-4 text-blue-400" />
-                Campaign Mechanics & Conversion Funnel
+                Campaign Mechanics & Full Conversion Funnel
               </h3>
 
               <div className="space-y-4 text-xs">
@@ -392,7 +448,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                   </p>
                 </div>
                 <div>
-                  <span className="text-slate-400 block mb-1 font-semibold">User Journey Steps:</span>
+                  <span className="text-slate-400 block mb-1 font-semibold">User Journey Conversion Flow:</span>
                   <p className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-amber-300 font-medium leading-relaxed">
                     {overview.userJourney}
                   </p>
@@ -401,21 +457,26 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
             </div>
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-6">
             <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 text-xs">
-              <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3">Campaign Parameters</h3>
+              <h3 className="text-sm font-bold text-white border-b border-slate-800 pb-3">Approval Financial Parameters</h3>
               <div className="space-y-3">
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Request Date</span>
-                  <span className="font-semibold text-slate-200">{overview.requestDate}</span>
+                  <span className="text-slate-400 block text-[11px]">Marketing Spend Budget</span>
+                  <span className="font-semibold text-slate-200">${(overview.marketingSpend || overview.totalBudget || 0).toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Ad Platforms / Channels</span>
-                  <span className="font-semibold text-slate-200">{overview.channels}</span>
+                  <span className="text-slate-400 block text-[11px]">Credit Bonus Budget</span>
+                  <span className="font-semibold text-amber-400">${(overview.creditBonusCost || 0).toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Total Allocated Budget</span>
-                  <span className="font-bold text-emerald-400 font-mono text-sm">${overview.totalBudget?.toLocaleString()}</span>
+                  <span className="text-slate-400 block text-[11px]">Total Campaign Cost</span>
+                  <span className="font-bold text-rose-400 font-mono text-sm">${(overview.totalCampaignCost || overview.totalBudget || 0).toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Target CPM / CPA</span>
+                  <span className="font-medium text-slate-300 font-mono">${overview.cpmTarget || 12.50} CPM / ${overview.cpaTarget || 45.00} CPA</span>
                 </div>
               </div>
             </div>
@@ -423,11 +484,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 2: KPI PERFORMANCE MATRIX (SEPARATED INTO PLUGIN AUTO-SYNC VS CRM VERIFICATION) */}
+      {/* TAB 2: KPI PERFORMANCE MATRIX */}
       {activeTab === 'kpi' && (
         <div className="space-y-6 animate-fadeIn">
           
-          {/* Trend Chart */}
           <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -436,7 +496,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
             <KPIChart data={kpiRows} type="weeklyTrend" />
           </div>
 
-          {/* Matrix Controls & Plugin Banner */}
           <div className="flex justify-between items-center flex-wrap gap-3">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -446,7 +505,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Spend & click metrics are auto-synced via <strong>Meta / Google / TikTok plugins</strong>. You only need to verify CRM leads, accounts, and deposits!
+                Ad spend metrics auto-synced from <strong>Meta/Google/TikTok</strong>. Team only needs to fill CRM Verified Leads, FTD, & Deposits!
               </p>
             </div>
             
@@ -456,7 +515,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition shadow-sm"
               >
                 <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Sync Meta/Google/TikTok Plugin</span>
+                <span>Sync Ad Plugin</span>
               </button>
 
               <button
@@ -477,18 +536,16 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
             </div>
           </div>
 
-          {/* KPI Table with Column Grouping */}
           <div className="glass-panel rounded-2xl border border-slate-800 overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                {/* Column Group Headers */}
                 <tr className="bg-slate-950 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-800">
                   <th colSpan={2} className="p-2 text-center border-r border-slate-800 text-slate-500">Period</th>
                   <th colSpan={3} className="p-2 text-center border-r border-slate-800 bg-emerald-500/5 text-emerald-400">
                     ⚡ Auto-Synced Ad Platform Metrics (Meta / Google / TikTok)
                   </th>
                   <th colSpan={5} className="p-2 text-center bg-amber-500/5 text-amber-400">
-                    🛡️ CRM Verified Downstream Metrics (Fill Manually)
+                    🛡️ CRM Verified Downstream Metrics (Leads, FTD, NMI)
                   </th>
                 </tr>
 
@@ -509,8 +566,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
               <tbody className="divide-y divide-slate-800/80">
                 {kpiRows.map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/40 transition">
-                    
-                    {/* Week */}
                     <td className="p-2">
                       <input
                         type="text"
@@ -519,8 +574,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2 py-1 text-xs font-bold text-white focus:border-amber-400"
                       />
                     </td>
-
-                    {/* Plugin Channel */}
                     <td className="p-2 border-r border-slate-800">
                       <input
                         type="text"
@@ -529,8 +582,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2 py-1 text-[11px] text-emerald-400 font-medium focus:border-amber-400"
                       />
                     </td>
-
-                    {/* Spend (Auto-Synced or Editable) */}
                     <td className="p-2 bg-slate-900/20">
                       <input
                         type="number"
@@ -541,8 +592,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2 py-1 text-xs font-mono font-bold text-white focus:border-amber-400"
                       />
                     </td>
-
-                    {/* Impressions */}
                     <td className="p-2 bg-slate-900/20">
                       <input
                         type="number"
@@ -552,8 +601,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2 py-1 text-xs font-mono text-slate-300 focus:border-amber-400"
                       />
                     </td>
-
-                    {/* Clicks */}
                     <td className="p-2 border-r border-slate-800 bg-slate-900/20">
                       <input
                         type="number"
@@ -563,8 +610,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-900/90 border border-slate-700/70 rounded px-2 py-1 text-xs font-mono text-slate-300 focus:border-amber-400"
                       />
                     </td>
-
-                    {/* CRM Verified Leads (Manual Input) */}
                     <td className="p-2 bg-amber-500/5">
                       <input
                         type="number"
@@ -574,13 +619,9 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-950 border border-amber-500/60 rounded px-2 py-1 text-xs font-mono font-bold text-amber-400 focus:border-amber-400"
                       />
                     </td>
-
-                    {/* CPL */}
                     <td className="p-3 font-mono font-bold text-emerald-400">
                       ${row.cpl?.toFixed(2) || '0.00'}
                     </td>
-
-                    {/* Accounts Opened (Manual Input) */}
                     <td className="p-2">
                       <input
                         type="number"
@@ -590,8 +631,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-950 border border-emerald-500/50 rounded px-2 py-1 text-xs font-mono text-slate-100 font-bold focus:border-amber-400"
                       />
                     </td>
-
-                    {/* FTDs (Manual Input) */}
                     <td className="p-2">
                       <input
                         type="number"
@@ -601,8 +640,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-950 border border-blue-500/50 rounded px-2 py-1 text-xs font-mono font-bold text-blue-400 focus:border-amber-400"
                       />
                     </td>
-
-                    {/* Net Deposit (Manual Input) */}
                     <td className="p-2">
                       <input
                         type="number"
@@ -613,7 +650,6 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
                         className="w-full bg-slate-950 border border-purple-500/50 rounded px-2 py-1 text-xs font-mono font-bold text-purple-400 focus:border-amber-400"
                       />
                     </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -637,7 +673,17 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 3: EXECUTION TIMELINE */}
+      {/* TAB 3: MONTHLY & END OF CAMPAIGN REVIEW REPORT */}
+      {activeTab === 'report' && (
+        <MonthlyReviewReport campaign={{ ...campaign, kpiTracking: kpiRows }} />
+      )}
+
+      {/* TAB 4: WEBINAR 2-TIER TRACKING */}
+      {activeTab === 'webinar' && isWebinarType && (
+        <WebinarTracker campaign={campaign} onUpdateWebinar={onUpdateCampaign} />
+      )}
+
+      {/* TAB 5: EXECUTION TIMELINE */}
       {activeTab === 'timeline' && (
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 animate-fadeIn">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -729,7 +775,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 4: DELIVERABLES MATRIX */}
+      {/* TAB 6: DELIVERABLES MATRIX */}
       {activeTab === 'deliverables' && (
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 animate-fadeIn">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -821,7 +867,7 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         </div>
       )}
 
-      {/* TAB 5: BUDGET */}
+      {/* TAB 7: BUDGET */}
       {activeTab === 'budget' && (
         <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 animate-fadeIn">
           <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
