@@ -1,92 +1,91 @@
 import React from 'react';
-import { Upload, Download, Search, RefreshCw, BarChart2, CheckCircle2, TrendingUp } from 'lucide-react';
+import { 
+  BarChart3, Upload, Download, RefreshCw, Search, Shield, Zap, Sparkles 
+} from 'lucide-react';
 
 export default function Navbar({ 
   searchTerm, 
   setSearchTerm, 
   onOpenUpload, 
-  onDownloadTemplate,
+  onDownloadTemplate, 
   onResetDemo,
-  campaignCount,
-  activeCount
+  campaignCount = 0,
+  activeCount = 0
 }) {
   return (
-    <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 bg-[#0B0F17]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 bg-[#070A0F]/85 backdrop-blur-md border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         
-        {/* Brand & Logo */}
-        <div className="flex items-center space-x-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl gradient-gold-bg flex items-center justify-center shadow-lg shadow-amber-900/30">
-            <span className="font-extrabold text-xl text-dark-900 tracking-wider">CPT</span>
+        {/* Brand Logo & Title */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl gradient-emerald-bg flex items-center justify-center shadow-lg shadow-emerald-950/40 border border-emerald-400/30">
+            <span className="font-black text-dark-900 text-xs tracking-wider">CPT</span>
           </div>
+
           <div>
-            <h1 className="font-bold text-lg text-white leading-tight flex items-center gap-2">
-              Ads Campaign Manager
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                Local System
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-extrabold text-white tracking-tight">Ads Campaign Manager</h1>
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                CPT Emerald System
               </span>
-            </h1>
-            <p className="text-xs text-slate-400">Tracking & Automated Template Analysis</p>
+            </div>
+            <p className="text-[10px] text-slate-400 hidden sm:block">
+              Tracking & Automated Template Analysis
+            </p>
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Global Search Input */}
         <div className="flex-1 max-w-md hidden md:block">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search campaigns by name, owner, region, or channel..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 transition"
+              placeholder="Search campaigns by name, owner, region, channel..."
+              className="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition"
             />
-            {searchTerm && (
-              <button 
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
-              >
-                ✕
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          {/* Active Campaigns Counter */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+        {/* Quick Actions */}
+        <div className="flex items-center gap-2">
+          
+          {/* Active Campaigns Counter Badge */}
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-slate-300 font-medium">{activeCount} / {campaignCount} Active</span>
+            <span>{activeCount} / {campaignCount} Active</span>
           </div>
 
-          {/* Download Template */}
+          {/* Download Template Button */}
           <button
             onClick={onDownloadTemplate}
-            title="Download CPT Campaign Form Template (.xlsx)"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition shadow-sm"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition"
+            title="Download CPT Campaign Excel Form (.xlsx)"
           >
-            <Download className="w-4 h-4 text-amber-400" />
-            <span className="hidden sm:inline">Form Template</span>
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Form Template</span>
           </button>
 
-          {/* Upload Campaign */}
+          {/* Upload Campaign Form */}
           <button
             onClick={onOpenUpload}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold gradient-gold-bg text-dark-900 hover:brightness-110 transition shadow-lg shadow-amber-900/20 active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold gradient-emerald-bg text-white hover:brightness-110 shadow-lg shadow-emerald-950/30 transition"
           >
-            <Upload className="w-4 h-4" />
+            <Upload className="w-3.5 h-3.5" />
             <span>Upload Campaign Form</span>
           </button>
 
-          {/* Reset Demo Data */}
+          {/* Reset Action */}
           <button
             onClick={onResetDemo}
-            title="Reset Sample Data"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 transition"
+            title="Reset System"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           </button>
+
         </div>
 
       </div>

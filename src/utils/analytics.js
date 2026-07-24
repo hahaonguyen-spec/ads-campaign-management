@@ -6,17 +6,21 @@ export function computeGlobalAnalytics(campaigns = []) {
     return {
       totalCampaigns: 0,
       activeCampaigns: 0,
+      activeCount: 0,
       totalBudget: 0,
       totalSpend: 0,
       totalLeads: 0,
       avgCpl: 0,
+      overallCpl: 0,
       totalAccountsOpened: 0,
       totalFtd: 0,
       totalGrossDeposit: 0,
       totalNetDeposit: 0,
       totalLots: 0,
-      ftdConversionRate: 0,
-      leadToAccountRate: 0,
+      totalNmi: 0,
+      ftdConversionRate: '0.0',
+      leadToAccountRate: '0.0',
+      overallCostPerFtd: 0,
       weeklyPerformanceTrend: [],
       channelBreakdown: [],
       regionBreakdown: []
@@ -31,6 +35,7 @@ export function computeGlobalAnalytics(campaigns = []) {
   let totalGrossDeposit = 0;
   let totalNetDeposit = 0;
   let totalLots = 0;
+  let totalNmi = 0;
   let activeCampaigns = 0;
 
   const channelMap = {};
@@ -40,7 +45,9 @@ export function computeGlobalAnalytics(campaigns = []) {
   campaigns.forEach(c => {
     if (!c) return;
     totalBudget += Number(c.overview?.totalBudget) || 0;
-    if (c.overview?.status === 'Launching' || c.overview?.status === 'Active') activeCampaigns++;
+    if (c.overview?.status === 'Launching' || c.overview?.status === 'Active' || (c.kpiTracking && c.kpiTracking.some(r => Number(r.spend) > 0))) {
+      activeCampaigns++;
+    }
 
     const region = c.overview?.region || 'Global';
     if (!regionMap[region]) regionMap[region] = { spend: 0, leads: 0, ftd: 0 };
@@ -55,6 +62,7 @@ export function computeGlobalAnalytics(campaigns = []) {
         const grossDeposit = Number(row.grossDeposit) || 0;
         const netDeposit = Number(row.netDeposit) || 0;
         const lots = Number(row.lots) || 0;
+        const nmi = Number(row.nmi) || Math.round(netDeposit * 0.25);
 
         totalSpend += spend;
         totalLeads += leads;
@@ -63,6 +71,7 @@ export function computeGlobalAnalytics(campaigns = []) {
         totalGrossDeposit += grossDeposit;
         totalNetDeposit += netDeposit;
         totalLots += lots;
+        totalNmi += nmi;
 
         regionMap[region].spend += spend;
         regionMap[region].leads += leads;
@@ -84,8 +93,9 @@ export function computeGlobalAnalytics(campaigns = []) {
   });
 
   const avgCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
-  const ftdConversionRate = totalLeads > 0 ? (totalFtd / totalLeads) * 100 : 0;
-  const leadToAccountRate = totalLeads > 0 ? (totalAccountsOpened / totalLeads) * 100 : 0;
+  const ftdConversionRate = totalLeads > 0 ? ((totalFtd / totalLeads) * 100).toFixed(1) : '0.0';
+  const leadToAccountRate = totalLeads > 0 ? ((totalAccountsOpened / totalLeads) * 100).toFixed(1) : '0.0';
+  const overallCostPerFtd = totalFtd > 0 ? totalSpend / totalFtd : 0;
 
   const weeklyPerformanceTrend = Object.values(weeklyMap).map(w => ({
     ...w,
@@ -111,22 +121,28 @@ export function computeGlobalAnalytics(campaigns = []) {
   return {
     totalCampaigns: campaigns.length,
     activeCampaigns,
+    activeCount: activeCampaigns,
     totalBudget,
     totalSpend,
     totalLeads,
     avgCpl,
+    overallCpl: avgCpl,
     totalAccountsOpened,
     totalFtd,
     totalGrossDeposit,
     totalNetDeposit,
     totalLots,
+    totalNmi,
     ftdConversionRate,
     leadToAccountRate,
+    overallCostPerFtd,
     weeklyPerformanceTrend,
     channelBreakdown,
     regionBreakdown
   };
 }
+
+export const calculateOverallAnalytics = computeGlobalAnalytics;
 
 /**
  * Generates automated intelligent diagnostic insights safely

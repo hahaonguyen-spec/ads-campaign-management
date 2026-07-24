@@ -1,63 +1,62 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
   body {
-    @apply bg-[#0B0F17] text-slate-100 min-h-screen font-sans;
+    @apply bg-[#070A0F] text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-black;
   }
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0F172A;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* Glassmorphism helpers */
+/* Custom CPT Emerald Glassmorphism & Gradient Utilities */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(13, 19, 31, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
-.glass-card {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.2s ease-in-out;
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-card:hover {
-  border-color: rgba(215, 183, 109, 0.3);
+.glass-panel-hover:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.2);
   transform: translateY(-2px);
 }
 
-/* Metallic gradient accent */
-.gradient-gold-text {
-  background: linear-gradient(135deg, #FDE68A 0%, #D97706 50%, #B45309 100%);
+/* CPT Emerald Gradient Accent */
+.gradient-emerald-bg {
+  background: linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%);
+}
+
+.gradient-emerald-text {
+  background: linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-gold-bg {
-  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+.gradient-dark-emerald {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(7, 10, 15, 0.8) 100%);
 }
 
-.animate-pulse-slow {
-  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.emerald-glow {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070A0F;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10B981;
 }

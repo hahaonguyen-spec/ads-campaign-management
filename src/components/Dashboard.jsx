@@ -1,295 +1,397 @@
 import React, { useState } from 'react';
 import { 
-  DollarSign, Users, Target, TrendingUp, Layers, Globe, Filter, Plus, 
-  Rocket, CalendarClock, PlusCircle, BarChart2, CheckCircle2
+  BarChart3, TrendingUp, DollarSign, Users, Target, Rocket, CalendarClock, 
+  Search, Plus, LayoutGrid, List, ChevronRight, Eye, Trash2, ArrowUpRight, Zap
 } from 'lucide-react';
 import CampaignCard from './CampaignCard';
-import KPIChart from './KPIChart';
-import { computeGlobalAnalytics } from '../utils/analytics';
+import { calculateOverallAnalytics } from '../utils/analytics';
 
 export default function Dashboard({ 
   campaigns = [], 
   onSelectCampaign, 
-  onDeleteCampaign,
-  onOpenUpload,
-  onOpenMetricInput,
-  searchTerm,
-  setSearchTerm
+  onDeleteCampaign, 
+  onOpenUpload, 
+  onOpenMetricInput, 
+  searchTerm, 
+  setSearchTerm 
 }) {
-  const [statusFilter, setStatusFilter] = useState('All'); // 'All', 'Launching', 'Planned'
+  const [statusFilter, setStatusFilter] = useState('All');
   const [regionFilter, setRegionFilter] = useState('All');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' (box) or 'list'
 
-  // Compute global aggregated statistics
-  const analytics = computeGlobalAnalytics(campaigns);
-
-  // Categorize campaigns
-  const launchingCampaigns = campaigns.filter(c => c.overview?.status === 'Launching' || (c.kpiTracking && c.kpiTracking.length > 0));
-  const plannedCampaigns = campaigns.filter(c => c.overview?.status === 'Planned' && (!c.kpiTracking || c.kpiTracking.length === 0));
+  const analytics = calculateOverallAnalytics(campaigns);
 
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(c => {
-    const matchesSearch = !searchTerm || 
-      c.overview?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.overview?.owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.overview?.region?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.overview?.channels?.toLowerCase().includes(searchTerm.toLowerCase());
+    const statusMatch = statusFilter === 'All' ? true : 
+                        statusFilter === 'Launching' ? (c.overview?.status === 'Launching' || (c.kpiTracking && c.kpiTracking.some(r => Number(r.spend) > 0))) :
+                        c.overview?.status === statusFilter;
 
-    let matchesStatus = true;
-    if (statusFilter === 'Launching') {
-      matchesStatus = c.overview?.status === 'Launching' || (c.kpiTracking && c.kpiTracking.length > 0);
-    } else if (statusFilter === 'Planned') {
-      matchesStatus = c.overview?.status === 'Planned' && (!c.kpiTracking || c.kpiTracking.length === 0);
-    }
+    const regionMatch = regionFilter === 'All' ? true : 
+                        (c.overview?.region || '').toLowerCase().includes(regionFilter.toLowerCase());
 
-    const matchesRegion = regionFilter === 'All' || c.overview?.region?.includes(regionFilter);
+    const searchMatch = !searchTerm ? true : 
+                        (c.overview?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (c.overview?.owner || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (c.overview?.region || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesStatus && matchesRegion;
+    return statusMatch && regionMatch && searchMatch;
   });
 
-  return (
-    <div className="space-y-8 animate-fadeIn pb-16">
-      
-      {/* Hero Welcome Banner */}
-      <div className="relative rounded-3xl p-6 sm:p-8 overflow-hidden bg-gradient-to-r from-slate-900 via-dark-800 to-amber-950/40 border border-slate-800 shadow-2xl">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
-              <Rocket className="w-3.5 h-3.5 text-emerald-400" />
-              {launchingCampaigns.length} Launching Campaigns
-            </span>
-            <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30 flex items-center gap-1">
-              <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
-              {plannedCampaigns.length} Planned Campaigns
-            </span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-            CPT <span className="gradient-gold-text">Campaign Tracking</span> & Management
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Review expected outcomes for <strong>Planned</strong> campaigns and track live results for <strong>Launching</strong> campaigns. Log metrics weekly to update actual performance.
-          </p>
-        </div>
-      </div>
+  const regionsList = Array.from(new Set(campaigns.map(c => c.overview?.region).filter(Boolean)));
 
-      {/* Global Executive KPI Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  return (
+    <div className="space-y-6 pb-12 animate-fadeIn">
+      
+      {/* EXECUTIVE KPI OVERVIEW CARDS (CPT Emerald Gradient Theme) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Total Spend & Budget */}
-        <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span>Total Campaign Spend</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+        {/* Card 1: Total Spend */}
+        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[11px]">Total Spends</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl sm:text-2xl font-black font-mono text-white">
-              ${analytics.totalSpend.toLocaleString()}
-            </span>
-            <span className="text-[11px] text-slate-400 font-mono">
-              / ${analytics.totalBudget.toLocaleString()}
-            </span>
+          <div className="flex items-baseline justify-between">
+            <span className="text-2xl font-black font-mono text-white">${analytics.totalSpend?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono text-emerald-400 font-bold">Active Ads</span>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div 
-              className="h-full gradient-gold-bg rounded-full" 
-              style={{ width: `${analytics.totalBudget > 0 ? Math.min(100, (analytics.totalSpend / analytics.totalBudget) * 100) : 0}%` }}
-            ></div>
+          <div className="text-[10px] text-slate-400 font-mono">
+            Across {analytics.activeCount} live campaigns
           </div>
         </div>
 
-        {/* Total Leads & CPL */}
-        <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span>Acquired Leads & CPL</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+        {/* Card 2: Total CRM Leads */}
+        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[11px]">Total CRM Leads</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-black font-mono text-amber-400">
-              {analytics.totalLeads.toLocaleString()}
-            </span>
-            <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              CPL: ${analytics.avgCpl.toFixed(2)}
-            </span>
+            <span className="text-2xl font-black font-mono text-amber-400">{analytics.totalLeads?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-emerald-400">${analytics.overallCpl?.toFixed(2)} Avg CPL</span>
           </div>
-          <p className="text-[11px] text-slate-400">
-            {analytics.totalAccountsOpened.toLocaleString()} Accounts Opened
-          </p>
+          <div className="text-[10px] text-slate-400 font-mono">
+            Verified in CRM
+          </div>
         </div>
 
-        {/* FTDs & Cost Per FTD */}
-        <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span>First Time Depositors (FTD)</span>
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+        {/* Card 3: First Time Depositors (FTD) */}
+        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 glass-panel-hover space-y-2 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[11px]">Total FTDs (Traders)</span>
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/30">
               <Target className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-black font-mono text-blue-400">
-              {analytics.totalFtd.toLocaleString()}
-            </span>
-            <span className="text-xs font-semibold text-slate-300">
-              {analytics.ftdConversionRate.toFixed(1)}% Conversion
-            </span>
+            <span className="text-2xl font-black font-mono text-blue-300">{analytics.totalFtd?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-blue-400">${analytics.overallCostPerFtd?.toFixed(2)} Cost/FTD</span>
           </div>
-          <p className="text-[11px] text-slate-400 font-mono">
-            Cost/FTD: ${analytics.totalFtd > 0 ? (analytics.totalSpend / analytics.totalFtd).toFixed(2) : '0.00'}
-          </p>
+          <div className="text-[10px] text-slate-400 font-mono">
+            Conversion: {analytics.ftdConversionRate}%
+          </div>
         </div>
 
-        {/* Total Net Deposit & Lots */}
-        <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span>Net Deposit & Traded Lots</span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+        {/* Card 4: Net Margin Income (NMI) */}
+        <div className="glass-panel p-5 rounded-2xl border border-emerald-500/30 glass-panel-hover space-y-2 relative overflow-hidden bg-gradient-to-b from-emerald-950/30 to-slate-900/60">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-emerald-400">NMI Net Revenue</span>
+            <div className="p-2 rounded-xl gradient-emerald-bg text-white shadow">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-xl sm:text-2xl font-black font-mono text-purple-400">
-              ${analytics.totalNetDeposit.toLocaleString()}
-            </span>
-            <span className="text-xs font-mono font-bold text-rose-400">
-              {analytics.totalLots.toLocaleString()} Lots
-            </span>
+            <span className="text-2xl font-black font-mono text-emerald-400">${analytics.totalNmi?.toLocaleString()}</span>
+            <span className="text-[11px] font-mono font-bold text-purple-300">Dep: ${analytics.totalNetDeposit?.toLocaleString()}</span>
           </div>
-          <p className="text-[11px] text-slate-400 font-mono">
-            Gross Deposit: ${analytics.totalGrossDeposit.toLocaleString()}
-          </p>
+          <div className="text-[10px] text-emerald-400 font-mono font-semibold">
+            CPT Margin Revenue
+          </div>
         </div>
 
       </div>
 
-      {/* Global Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <BarChart2 className="w-4 h-4 text-amber-400" />
-            Live Performance Trend (Weekly Results)
-          </h3>
-          <KPIChart data={analytics.weeklyPerformanceTrend} type="weeklyTrend" />
-        </div>
-
-        <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-400" />
-            Channel Breakdown (Spend vs Leads)
-          </h3>
-          <KPIChart data={analytics.channelBreakdown} type="channelBreakdown" />
-        </div>
-      </div>
-
-      {/* Campaign Library Section with Status Tabs */}
-      <div className="space-y-4">
+      {/* FILTER TABS & TOP-RIGHT VIEW MODE SWITCHER */}
+      <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        {/* Status Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none">
+          <button
+            onClick={() => setStatusFilter('All')}
+            className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
+              statusFilter === 'All'
+                ? 'gradient-emerald-bg text-white shadow-md'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <span>All Campaigns</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black/30 text-white font-mono">
+              {campaigns.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('Launching')}
+            className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
+              statusFilter === 'Launching'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Rocket className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Launching (Live Results)</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/30 text-emerald-300 font-mono">
+              {campaigns.filter(c => c.overview?.status === 'Launching' || (c.kpiTracking && c.kpiTracking.some(r => Number(r.spend) > 0))).length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setStatusFilter('Planned')}
+            className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
+              statusFilter === 'Planned'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
+            <span>Planned (Expected Target)</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/30 text-amber-300 font-mono">
+              {campaigns.filter(c => c.overview?.status === 'Planned' && (!c.kpiTracking || !c.kpiTracking.some(r => Number(r.spend) > 0))).length}
+            </span>
+          </button>
+        </div>
+
+        {/* TOP-RIGHT CONTROLS: Region Filter & Box/List View Switcher */}
+        <div className="flex items-center gap-3 shrink-0">
           
-          {/* Status Tabs */}
-          <div className="flex items-center gap-2">
+          {/* Region Dropdown */}
+          <select
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
+            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:border-emerald-500"
+          >
+            <option value="All">All Regions</option>
+            {regionsList.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+
+          {/* VIEW SWITCHER: BOX GRID VS LIST VIEW */}
+          <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
             <button
-              onClick={() => setStatusFilter('All')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                statusFilter === 'All'
-                  ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setViewMode('grid')}
+              title="Box / Grid View"
+              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-semibold ${
+                viewMode === 'grid'
+                  ? 'gradient-emerald-bg text-white shadow'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
-              <span>All Campaigns</span>
-              <span className="px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 text-[10px]">
-                {campaigns.length}
-              </span>
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Box</span>
             </button>
 
             <button
-              onClick={() => setStatusFilter('Launching')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                statusFilter === 'Launching'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-emerald-400'
+              onClick={() => setViewMode('list')}
+              title="List View"
+              className={`p-1.5 rounded-lg transition flex items-center gap-1 text-xs font-semibold ${
+                viewMode === 'list'
+                  ? 'gradient-emerald-bg text-white shadow'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Rocket className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Launching (Live Results)</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 text-[10px]">
-                {launchingCampaigns.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setStatusFilter('Planned')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                statusFilter === 'Planned'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                  : 'text-slate-400 hover:text-amber-400'
-              }`}
-            >
-              <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
-              <span>Planned (Expected Target)</span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-200 text-[10px]">
-                {plannedCampaigns.length}
-              </span>
+              <List className="w-4 h-4" />
+              <span className="hidden sm:inline">List</span>
             </button>
           </div>
 
-          {/* Region & Actions */}
-          <div className="flex items-center gap-3">
-            <select
-              value={regionFilter}
-              onChange={(e) => setRegionFilter(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500/50"
-            >
-              <option value="All">All Regions</option>
-              <option value="SEA">SEA</option>
-              <option value="LatAm">LatAm</option>
-              <option value="Global">Global</option>
-            </select>
-
-            <button
-              onClick={onOpenUpload}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold gradient-gold-bg text-dark-900 hover:brightness-110 transition shadow-md"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Upload Campaign Form</span>
-            </button>
-          </div>
+          {/* Upload Button */}
+          <button
+            onClick={onOpenUpload}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold gradient-emerald-bg text-white hover:brightness-110 shadow-lg shadow-emerald-900/20"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Upload Form</span>
+          </button>
 
         </div>
 
-        {/* Campaign Cards Grid */}
-        {filteredCampaigns.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCampaigns.map(c => (
-              <CampaignCard
-                key={c.id}
-                campaign={c}
-                onSelect={onSelectCampaign}
-                onDelete={onDeleteCampaign}
-                onOpenMetricInput={onOpenMetricInput}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="glass-panel p-12 text-center rounded-2xl border border-slate-800 space-y-3">
-            <CalendarClock className="w-8 h-8 text-amber-400 mx-auto" />
-            <h4 className="text-base font-bold text-white">No {statusFilter} Campaigns Found</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Upload a campaign Excel brief to add new planned or launching campaigns.
-            </p>
-            <button
-              onClick={onOpenUpload}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold gradient-gold-bg text-dark-900 hover:brightness-110 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Upload Excel Form</span>
-            </button>
-          </div>
-        )}
-
       </div>
+
+      {/* CAMPAIGNS CONTENT (RENDER BOX GRID OR LIST VIEW) */}
+      {filteredCampaigns.length === 0 ? (
+        <div className="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
+          <div className="p-4 rounded-full bg-slate-900 text-slate-500 w-16 h-16 mx-auto flex items-center justify-center border border-slate-800">
+            <Search className="w-8 h-8 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">No CPT Campaigns Found</h3>
+            <p className="text-xs text-slate-400 mt-1">Upload your CPT Ads Campaign form (.xlsx) or adjust filters to view live data.</p>
+          </div>
+          <button
+            onClick={onOpenUpload}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold gradient-emerald-bg text-white shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Upload Campaign Form</span>
+          </button>
+        </div>
+      ) : viewMode === 'grid' ? (
+        
+        /* 1. DẠNG BOX (GRID VIEW) */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+          {filteredCampaigns.map(campaign => (
+            <CampaignCard
+              key={campaign.id}
+              campaign={campaign}
+              onSelect={() => onSelectCampaign(campaign)}
+              onDelete={() => onDeleteCampaign(campaign.id)}
+              onOpenMetricInput={() => onOpenMetricInput(campaign)}
+            />
+          ))}
+        </div>
+
+      ) : (
+
+        /* 2. DẠNG LIST (LIST VIEW) */
+        <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden animate-fadeIn">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900/90 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold">
+                  <th className="p-4 min-w-[240px]">Campaign Name</th>
+                  <th className="p-4 w-32">Status</th>
+                  <th className="p-4 w-36">Region / Audience</th>
+                  <th className="p-4 w-28">Spend ($)</th>
+                  <th className="p-4 w-24 text-amber-400">Leads</th>
+                  <th className="p-4 w-24 text-emerald-400">CPL ($)</th>
+                  <th className="p-4 w-24 text-blue-400">FTD</th>
+                  <th className="p-4 w-28 text-purple-400">Net Dep ($)</th>
+                  <th className="p-4 w-28 text-center">Progress %</th>
+                  <th className="p-4 w-28 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {filteredCampaigns.map(campaign => {
+                  const { overview = {}, kpiTracking = [] } = campaign;
+                  const totalSpend = kpiTracking.reduce((a, b) => a + (Number(b.spend) || 0), 0);
+                  const totalLeads = kpiTracking.reduce((a, b) => a + (Number(b.leads) || 0), 0);
+                  const totalFtd = kpiTracking.reduce((a, b) => a + (Number(b.ftd) || 0), 0);
+                  const totalNetDeposit = kpiTracking.reduce((a, b) => a + (Number(b.netDeposit) || 0), 0);
+                  const avgCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
+                  const targetLeads = overview.expectedTargets?.targetLeads || 1000;
+                  const progressPct = targetLeads > 0 ? Math.min(100, Math.round((totalLeads / targetLeads) * 100)) : 0;
+
+                  const isLive = overview.status === 'Launching' || totalSpend > 0;
+
+                  return (
+                    <tr key={campaign.id} className="hover:bg-slate-800/40 transition">
+                      
+                      {/* Campaign Name */}
+                      <td className="p-4">
+                        <div
+                          onClick={() => onSelectCampaign(campaign)}
+                          className="font-bold text-white text-sm hover:text-emerald-400 cursor-pointer flex items-center gap-1.5 group"
+                        >
+                          <span>{overview.name || 'Untitled Campaign'}</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition" />
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">
+                          {overview.type} • {overview.owner}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="p-4">
+                        <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border flex items-center gap-1 w-fit ${
+                          isLive 
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        }`}>
+                          {isLive ? <Rocket className="w-3 h-3 text-emerald-400" /> : <CalendarClock className="w-3 h-3 text-amber-400" />}
+                          <span>{isLive ? 'Launching' : 'Planned'}</span>
+                        </span>
+                      </td>
+
+                      {/* Region */}
+                      <td className="p-4">
+                        <span className="text-slate-300 font-medium block">{overview.region || 'Global'}</span>
+                        <span className="text-[10px] text-slate-500 block">{overview.targetAudience}</span>
+                      </td>
+
+                      {/* Spend */}
+                      <td className="p-4 font-mono font-bold text-white">
+                        ${totalSpend.toLocaleString()}
+                      </td>
+
+                      {/* Leads */}
+                      <td className="p-4 font-mono font-bold text-amber-400">
+                        {totalLeads.toLocaleString()}
+                      </td>
+
+                      {/* CPL */}
+                      <td className="p-4 font-mono font-bold text-emerald-400">
+                        ${avgCpl.toFixed(2)}
+                      </td>
+
+                      {/* FTD */}
+                      <td className="p-4 font-mono font-bold text-blue-400">
+                        {totalFtd.toLocaleString()}
+                      </td>
+
+                      {/* Net Deposit */}
+                      <td className="p-4 font-mono font-bold text-purple-400">
+                        ${totalNetDeposit.toLocaleString()}
+                      </td>
+
+                      {/* Progress % */}
+                      <td className="p-4 text-center">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div className="h-full gradient-emerald-bg rounded-full" style={{ width: `${progressPct}%` }}></div>
+                          </div>
+                          <span className="text-[11px] font-mono font-bold text-emerald-400">{progressPct}%</span>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => onSelectCampaign(campaign)}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+                            title="View Campaign Workspace"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteCampaign(campaign.id)}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 border border-slate-700 transition"
+                            title="Delete Campaign"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      )}
 
     </div>
   );
