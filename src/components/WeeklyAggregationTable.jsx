@@ -2,11 +2,12 @@ import React from 'react';
 import { Calculator, TrendingUp, Sparkles, Layers } from 'lucide-react';
 
 export default function WeeklyAggregationTable({ kpiRows = [] }) {
-  // Aggregate rows by week name (case-insensitive trim)
+  // Aggregate rows by week name (case-insensitive trim, handling numbers safely)
   const groupMap = {};
 
-  kpiRows.forEach(row => {
-    const rawWk = (row.week || 'Unspecified').trim();
+  (kpiRows || []).forEach(row => {
+    if (!row) return;
+    const rawWk = String(row.week !== undefined && row.week !== null && row.week !== '' ? row.week : 'Unspecified').trim();
     const groupKey = rawWk.toLowerCase();
 
     if (!groupMap[groupKey]) {
@@ -44,8 +45,8 @@ export default function WeeklyAggregationTable({ kpiRows = [] }) {
     g.lots += Number(row.lots) || 0;
     g.nmi += Number(row.nmi) || 0;
 
-    if (row.channel && !g.channels.includes(row.channel)) {
-      g.channels.push(row.channel);
+    if (row.channel && !g.channels.includes(String(row.channel))) {
+      g.channels.push(String(row.channel));
     }
   });
 
