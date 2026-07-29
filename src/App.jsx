@@ -4,14 +4,17 @@ import Dashboard from './components/Dashboard';
 import CampaignDetail from './components/CampaignDetail';
 import UploadModal from './components/UploadModal';
 import MetricInputModal from './components/MetricInputModal';
+import CloudSettingsModal from './components/CloudSettingsModal';
 import { INITIAL_CAMPAIGNS } from './data/initialCampaigns';
 import { loadCampaignsFromPermanentStorage, saveCampaignsToPermanentStorage } from './utils/dbStorage';
+import { saveCampaignsToCloud, loadCampaignsFromCloud } from './utils/cloudStorage';
 
 export default function App() {
   const [campaigns, setCampaigns] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isCloudSettingsOpen, setIsCloudSettingsOpen] = useState(false);
   const [metricModalCampaign, setMetricModalCampaign] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,20 +26,33 @@ export default function App() {
     }
   }, []);
 
-  // Load saved campaigns from IndexedDB / Permanent Local Storage on startup
+  // Load saved campaigns from IndexedDB / Local Storage & Cloud Storage on startup
   useEffect(() => {
     async function initStorage() {
-      const data = await loadCampaignsFromPermanentStorage([]);
-      setCampaigns(data);
+      // 1. Try loading from permanent local storage
+      let localData = await loadCampaignsFromPermanentStorage([]);
+      
+      // 2. Try loading from Cloud storage
+      try {
+        const cloudData = await loadCampaignsFromCloud();
+        if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
+          localData = cloudData;
+        }
+      } catch (e) {
+        console.warn('Cloud sync on load notice:', e);
+      }
+
+      setCampaigns(localData);
       setIsLoaded(true);
     }
     initStorage();
   }, []);
 
-  // Save to Permanent Local Storage whenever campaigns change
+  // Save to Permanent Local Storage + Cloud Storage whenever campaigns change
   useEffect(() => {
     if (isLoaded) {
       saveCampaignsToPermanentStorage(campaigns);
+      saveCampaignsToCloud(campaigns);
     }
   }, [campaigns, isLoaded]);
 
@@ -56,12 +72,13 @@ export default function App() {
   };
 
   const handleResetDemo = () => {
-    if (confirm('Clear all local campaigns and start fresh?')) {
+    if (confirm('Clear all local & cloud campaigns and start fresh?')) {
       localStorage.clear();
       localStorage.setItem('cpt_sample_cleared_v1', 'true');
       setCampaigns([]);
       setSelectedCampaignId(null);
       saveCampaignsToPermanentStorage([]);
+      saveCampaignsToCloud([]);
     }
   };
 
@@ -82,7 +99,7 @@ export default function App() {
       <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center p-6 text-slate-100 font-sans">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-slate-400">Loading CPT Campaign System...</p>
+          <p className="text-xs text-slate-400">Loading CPT Campaign System & Cloud Storage...</p>
         </div>
       </div>
     );
@@ -95,6 +112,7 @@ export default function App() {
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenCloudSettings={() => setIsCloudSettingsOpen(true)}
         onDownloadTemplate={handleDownloadTemplate}
         onResetDemo={handleResetDemo}
         campaignCount={(campaigns || []).length}
@@ -128,6 +146,13 @@ export default function App() {
         onCampaignUploaded={handleCampaignUploaded}
       />
 
+      <CloudSettingsModal
+        isOpen={isCloudSettingsOpen}
+        onClose={() => setIsCloudSettingsOpen(false)}
+        campaigns={campaigns}
+        onCloudDataLoaded={(loadedData) => setCampaigns(loadedData)}
+      />
+
       <MetricInputModal
         isOpen={!!metricModalCampaign}
         onClose={() => setMetricModalCampaign(null)}
@@ -140,7 +165,7 @@ export default function App() {
           <span>CPT Ads Campaign Management & Performance System</span>
           <span className="text-emerald-400 font-medium flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            System Storage Ready
+            Cloud Storage & Local DB Ready
           </span>
         </div>
       </footer>

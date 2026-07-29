@@ -1,12 +1,13 @@
 import React from 'react';
 import { 
-  BarChart3, Upload, Download, RefreshCw, Search, Shield, Zap, Sparkles 
+  BarChart3, Upload, Download, RefreshCw, Search, Shield, Zap, Sparkles, Cloud, PlusCircle 
 } from 'lucide-react';
 
 export default function Navbar({ 
   searchTerm, 
   setSearchTerm, 
   onOpenUpload, 
+  onOpenCloudSettings,
   onDownloadTemplate, 
   onResetDemo,
   campaignCount = 0,
@@ -26,7 +27,7 @@ export default function Navbar({
             <div className="flex items-center gap-2">
               <h1 className="text-base font-extrabold text-white tracking-tight">Ads Campaign Manager</h1>
               <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-[#0AE5D5]/15 text-[#0AE5D5] border border-[#0AE5D5]/40">
-                CPT Official System
+                Cloud Sync
               </span>
             </div>
             <p className="text-[10px] text-slate-400 hidden sm:block font-medium">
@@ -58,6 +59,16 @@ export default function Navbar({
             <span>{activeCount} / {campaignCount} Active</span>
           </div>
 
+          {/* Cloud Storage Status & Settings Button */}
+          <button
+            onClick={onOpenCloudSettings}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition"
+            title="Cloud Storage Status & Sync Settings"
+          >
+            <Cloud className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span className="hidden sm:inline">Cloud Saved</span>
+          </button>
+
           {/* Download Template Button */}
           <button
             onClick={onDownloadTemplate}
@@ -68,13 +79,13 @@ export default function Navbar({
             <span>Form Template</span>
           </button>
 
-          {/* Upload Campaign Form */}
+          {/* Campaign Form Button (Direct Input or File Upload) */}
           <button
             onClick={onOpenUpload}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] hover:brightness-110 shadow-lg shadow-[#0AE5D5]/20 transition"
           >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Upload Campaign Form</span>
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Input / Upload Form</span>
           </button>
 
           {/* Reset Action */}
