@@ -1,0 +1,17 @@
+{
+  "short_name": "CPT Ads",
+  "name": "CPT Ads Campaign Management & Performance Tracker",
+  "description": "Mobile web version & tracking system for CPT Ads Campaigns",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512 192x192 64x64 32x32"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B0F17",
+  "theme_color": "#071322",
+  "display": "standalone",
+  "orientation": "portrait"
+}

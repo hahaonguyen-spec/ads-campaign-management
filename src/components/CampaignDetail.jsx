@@ -240,43 +240,44 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
     <div className="space-y-6 animate-fadeIn pb-12">
       
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-5 rounded-2xl border border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-5 sm:p-6 rounded-2xl border border-slate-800">
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition shadow-sm"
+            className="p-3 rounded-xl bg-[#071322] border border-slate-700 text-slate-300 hover:text-white hover:bg-[#1E375E] transition shadow-sm"
+            title="Back to Dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h2 className="text-xl font-extrabold text-white">{overview?.name || 'Untitled Campaign'}</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white">{overview?.name || 'Untitled Campaign'}</h2>
               
               <button
                 onClick={handleToggleStatus}
                 title="Click to toggle Planned / Launching status"
-                className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border transition cursor-pointer flex items-center gap-1 ${
+                className={`text-xs font-bold uppercase px-3 py-1 rounded-full border transition cursor-pointer flex items-center gap-1.5 ${
                   isPlanned 
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30' 
-                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                    ? 'bg-[#33CCFF]/20 text-[#33CCFF] border-[#33CCFF]/40 hover:bg-[#33CCFF]/30' 
+                    : 'bg-[#0AE5D5]/20 text-[#0AE5D5] border-[#0AE5D5]/40 hover:bg-[#0AE5D5]/30'
                 }`}
               >
-                {isPlanned ? <CalendarClock className="w-3 h-3 text-amber-400" /> : <Rocket className="w-3 h-3 text-emerald-400" />}
-                <span>{overview?.status || 'Planned'} (Click to toggle)</span>
+                {isPlanned ? <CalendarClock className="w-3.5 h-3.5 text-[#33CCFF]" /> : <Rocket className="w-3.5 h-3.5 text-[#0AE5D5]" />}
+                <span>{overview?.status || 'Planned'} (Toggle)</span>
               </button>
 
-              <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                CPT-I Online Approval Standard
+              <span className="text-xs font-bold uppercase px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30 hidden sm:inline-block">
+                CPT-I Approved Standard
               </span>
             </div>
             
-            <p className="text-xs text-slate-400 flex items-center gap-3 flex-wrap">
-              <span>Duration: <strong className="text-slate-200 font-medium">{overview?.duration}</strong></span>
+            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-3 flex-wrap font-medium">
+              <span>Duration: <strong className="text-slate-200">{overview?.duration}</strong></span>
               <span>•</span>
-              <span>Target Audience: <strong className="text-slate-200 font-medium">{overview?.targetAudience}</strong></span>
+              <span>Target Audience: <strong className="text-slate-200">{overview?.targetAudience}</strong></span>
               <span>•</span>
-              <span>Feasibility: <strong className="text-emerald-400 font-medium">{overview?.paidTeamFeasibility || 'Feasible & Approved'}</strong></span>
+              <span>Feasibility: <strong className="text-[#0AE5D5]">{overview?.paidTeamFeasibility || 'Feasible & Approved'}</strong></span>
             </p>
           </div>
         </div>
@@ -285,15 +286,15 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsAdPluginOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#0AE5D5]/15 text-[#0AE5D5] border border-[#0AE5D5]/40 hover:bg-[#0AE5D5]/25 transition"
           >
-            <Zap className="w-4 h-4 text-emerald-400" />
+            <Zap className="w-4 h-4 text-[#0AE5D5]" />
             <span>Sync Ad Plugin</span>
           </button>
 
           <button
             onClick={() => onOpenMetricInput(campaign)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold gradient-gold-bg text-dark-900 hover:brightness-110 transition shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-black gradient-cpt-brand text-[#071322] hover:brightness-110 transition shadow-md"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>Fill CRM Verified Data</span>
@@ -302,9 +303,9 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
           {overview?.trackingLink && (
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200 hover:border-amber-500/50 transition"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#071322] border border-slate-700 text-slate-200 hover:border-[#33CCFF] transition"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-amber-400" />}
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-[#33CCFF]" />}
               <span>{copied ? 'Copied!' : 'Copy Link'}</span>
             </button>
           )}
@@ -313,36 +314,36 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
 
       {/* MANDATED KEY METRICS HIGHLIGHTS (CPT-I: Leads, FTD, NMI) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-1">
+        <div className="glass-panel p-5 rounded-2xl border border-[#33CCFF]/30 bg-[#0C2038] space-y-1.5">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-amber-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 1: Leads</span>
-            <span className="text-slate-400 font-mono text-[11px]">Target: {expected.targetLeads?.toLocaleString()}</span>
+            <span className="text-[#33CCFF] font-bold uppercase text-xs tracking-wider">Key Metric 1: Leads</span>
+            <span className="text-slate-400 font-mono text-xs">Target: {expected.targetLeads?.toLocaleString()}</span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-white">{totalLeads.toLocaleString()}</span>
-            <span className="text-xs font-bold font-mono text-amber-400">${avgCpl.toFixed(2)} Avg CPL</span>
+            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">{totalLeads.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-bold font-mono text-[#33CCFF]">${avgCpl.toFixed(2)} Avg CPL</span>
           </div>
         </div>
 
-        <div className="glass-card p-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 space-y-1">
+        <div className="glass-panel p-5 rounded-2xl border border-sky-500/30 bg-[#0C2038] space-y-1.5">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-blue-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 2: FTD</span>
-            <span className="text-slate-400 font-mono text-[11px]">Target: {expected.targetFtd?.toLocaleString()}</span>
+            <span className="text-sky-300 font-bold uppercase text-xs tracking-wider">Key Metric 2: FTD</span>
+            <span className="text-slate-400 font-mono text-xs">Target: {expected.targetFtd?.toLocaleString()}</span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-blue-300">{totalFtd.toLocaleString()}</span>
-            <span className="text-xs font-bold font-mono text-blue-400">${totalFtd > 0 ? (totalSpend / totalFtd).toFixed(2) : '0.00'} Cost/FTD</span>
+            <span className="text-2xl sm:text-3xl font-black font-mono text-sky-200 tracking-tight">{totalFtd.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-bold font-mono text-sky-300">${totalFtd > 0 ? (totalSpend / totalFtd).toFixed(2) : '0.00'} /FTD</span>
           </div>
         </div>
 
-        <div className="glass-card p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-1">
+        <div className="glass-panel p-5 rounded-2xl border border-[#0AE5D5]/30 bg-[#0C2038] space-y-1.5">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-emerald-400 font-bold uppercase text-[10px] tracking-wider">Key Metric 3: NMI (Net Margin)</span>
-            <span className="text-slate-400 font-mono text-[11px]">Target: ${expected.targetNmi?.toLocaleString()}</span>
+            <span className="text-[#0AE5D5] font-bold uppercase text-xs tracking-wider">Key Metric 3: NMI (Net Margin)</span>
+            <span className="text-slate-400 font-mono text-xs">Target: ${expected.targetNmi?.toLocaleString()}</span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-mono text-emerald-400">${totalNmi.toLocaleString()}</span>
-            <span className="text-xs font-bold font-mono text-emerald-300">Net Dep: ${totalNetDeposit.toLocaleString()}</span>
+            <span className="text-2xl sm:text-3xl font-black font-mono text-[#0AE5D5] tracking-tight">${totalNmi.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-bold font-mono text-[#0AE5D5]">Dep: ${totalNetDeposit.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -350,24 +351,24 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
       {/* AI Diagnostic Insights */}
       <AIInsights campaign={{ ...campaign, kpiTracking: kpiRows }} />
 
-      {/* Tabs Header */}
-      <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-xs font-semibold scrollbar-none">
+      {/* Tabs Header - Touch Swappable */}
+      <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-xs sm:text-sm font-bold scrollbar-none py-1">
         {[
-          { id: 'overview', label: 'Brief & Strategy', icon: <FileText className="w-4 h-4" /> },
-          { id: 'kpi', label: `KPI Matrix (${kpiRows.length} Rows)`, icon: <BarChart3 className="w-4 h-4" /> },
-          { id: 'report', label: 'Monthly & End Review Report', icon: <Award className="w-4 h-4" /> },
-          { id: 'timeline', label: `Execution Schedule (${timelineList.length})`, icon: <Clock className="w-4 h-4" /> },
-          { id: 'deliverables', label: `Deliverables (${deliverablesList.length})`, icon: <CheckCircle2 className="w-4 h-4" /> },
-          { id: 'budget', label: 'Budget Allocations', icon: <DollarSign className="w-4 h-4" /> },
-          ...(isWebinarType ? [{ id: 'webinar', label: 'Webinar 2-Tier Tracking', icon: <Video className="w-4 h-4" /> }] : [])
+          { id: 'overview', label: 'Brief & Strategy', icon: <FileText className="w-4.5 h-4.5" /> },
+          { id: 'kpi', label: `KPI Matrix (${kpiRows.length})`, icon: <BarChart3 className="w-4.5 h-4.5" /> },
+          { id: 'report', label: 'Monthly Report', icon: <Award className="w-4.5 h-4.5" /> },
+          { id: 'timeline', label: `Schedule (${timelineList.length})`, icon: <Clock className="w-4.5 h-4.5" /> },
+          { id: 'deliverables', label: `Deliverables (${deliverablesList.length})`, icon: <CheckCircle2 className="w-4.5 h-4.5" /> },
+          { id: 'budget', label: 'Budget Allocations', icon: <DollarSign className="w-4.5 h-4.5" /> },
+          ...(isWebinarType ? [{ id: 'webinar', label: 'Webinar 2-Tier', icon: <Video className="w-4.5 h-4.5" /> }] : [])
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 border-b-2 transition whitespace-nowrap ${
               activeTab === tab.id
-                ? 'border-amber-400 text-amber-400 bg-amber-500/10 rounded-t-xl'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+                ? 'border-[#0AE5D5] text-[#0AE5D5] bg-[#0AE5D5]/10 rounded-t-xl font-black'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#0C2038]'
             }`}
           >
             {tab.icon}

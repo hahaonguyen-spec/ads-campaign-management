@@ -5,7 +5,7 @@ import CampaignDetail from './components/CampaignDetail';
 import UploadModal from './components/UploadModal';
 import MetricInputModal from './components/MetricInputModal';
 import CloudSettingsModal from './components/CloudSettingsModal';
-import { INITIAL_CAMPAIGNS } from './data/initialCampaigns';
+import MobileBottomNav from './components/MobileBottomNav';
 import { loadCampaignsFromPermanentStorage, saveCampaignsToPermanentStorage } from './utils/dbStorage';
 import { saveCampaignsToCloud, loadCampaignsFromCloud } from './utils/cloudStorage';
 
@@ -17,6 +17,16 @@ export default function App() {
   const [isCloudSettingsOpen, setIsCloudSettingsOpen] = useState(false);
   const [metricModalCampaign, setMetricModalCampaign] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Font Size Scale State ('normal' | 'large' | 'xl')
+  const [textSizeScale, setTextSizeScale] = useState(() => {
+    return localStorage.getItem('cpt_text_scale') || 'normal';
+  });
+
+  const handleTextSizeChange = (newScale) => {
+    setTextSizeScale(newScale);
+    localStorage.setItem('cpt_text_scale', newScale);
+  };
 
   // Clear legacy sample data cache once
   useEffect(() => {
@@ -99,14 +109,14 @@ export default function App() {
       <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center p-6 text-slate-100 font-sans">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-slate-400">Loading CPT Campaign System & Cloud Storage...</p>
+          <p className="text-sm text-slate-300">Loading CPT Campaign System & Cloud Storage...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans font-scale-${textSizeScale}`}>
       
       <Navbar
         searchTerm={searchTerm}
@@ -117,9 +127,11 @@ export default function App() {
         onResetDemo={handleResetDemo}
         campaignCount={(campaigns || []).length}
         activeCount={activeCount}
+        textSizeScale={textSizeScale}
+        onChangeTextSize={handleTextSizeChange}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-24 md:pb-8">
         {selectedCampaign ? (
           <CampaignDetail
             campaign={selectedCampaign}
@@ -139,6 +151,20 @@ export default function App() {
           />
         )}
       </main>
+
+      <MobileBottomNav
+        activeTab={selectedCampaignId ? 'detail' : 'dashboard'}
+        onGoHome={() => setSelectedCampaignId(null)}
+        onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenCloudSettings={() => setIsCloudSettingsOpen(true)}
+        textSizeScale={textSizeScale}
+        onChangeTextSize={handleTextSizeChange}
+        onToggleSearch={() => {
+          setSelectedCampaignId(null);
+          const el = document.getElementById('global-search-input');
+          if (el) el.focus();
+        }}
+      />
 
       <UploadModal
         isOpen={isUploadOpen}
@@ -160,12 +186,12 @@ export default function App() {
         onSaveMetrics={handleUpdateCampaign}
       />
 
-      <footer className="border-t border-slate-800/80 bg-[#0B0F17] py-6 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-800/80 bg-[#0B0F17] py-6 text-center text-xs text-slate-500 mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>CPT Ads Campaign Management & Performance System</span>
+          <span className="font-medium text-slate-400">CPT Ads Campaign Management & Performance System (Mobile & Web App)</span>
           <span className="text-emerald-400 font-medium flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Cloud Storage & Local DB Ready
+            Cloud Sync & Local DB Active
           </span>
         </div>
       </footer>
@@ -173,3 +199,4 @@ export default function App() {
     </div>
   );
 }
+
