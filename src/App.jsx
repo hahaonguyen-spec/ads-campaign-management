@@ -14,9 +14,20 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadModalTab, setUploadModalTab] = useState('ai_proposal');
   const [isCloudSettingsOpen, setIsCloudSettingsOpen] = useState(false);
   const [metricModalCampaign, setMetricModalCampaign] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleOpenUpload = (tab = 'direct') => {
+    setUploadModalTab(tab);
+    setIsUploadOpen(true);
+  };
+
+  const handleOpenAiProposal = () => {
+    setUploadModalTab('ai_proposal');
+    setIsUploadOpen(true);
+  };
   
   // Font Size Scale State ('normal' | 'large' | 'xl')
   const [textSizeScale, setTextSizeScale] = useState(() => {
@@ -121,7 +132,8 @@ export default function App() {
       <Navbar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenUpload={() => handleOpenUpload('direct')}
+        onOpenAiProposal={handleOpenAiProposal}
         onOpenCloudSettings={() => setIsCloudSettingsOpen(true)}
         onDownloadTemplate={handleDownloadTemplate}
         onResetDemo={handleResetDemo}
@@ -142,7 +154,8 @@ export default function App() {
             campaigns={campaigns || []}
             onSelectCampaign={(c) => setSelectedCampaignId(c.id)}
             onDeleteCampaign={handleDeleteCampaign}
-            onOpenUpload={() => setIsUploadOpen(true)}
+            onOpenUpload={() => handleOpenUpload('direct')}
+            onOpenAiProposal={handleOpenAiProposal}
             onOpenMetricInput={(c) => setMetricModalCampaign(c)}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -153,7 +166,7 @@ export default function App() {
       <MobileBottomNav
         activeTab={selectedCampaignId ? 'detail' : 'dashboard'}
         onGoHome={() => setSelectedCampaignId(null)}
-        onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenUpload={() => handleOpenUpload('ai_proposal')}
         onOpenCloudSettings={() => setIsCloudSettingsOpen(true)}
         onToggleSearch={() => {
           setSelectedCampaignId(null);
@@ -164,6 +177,7 @@ export default function App() {
 
       <UploadModal
         isOpen={isUploadOpen}
+        initialTab={uploadModalTab}
         onClose={() => setIsUploadOpen(false)}
         onCampaignUploaded={handleCampaignUploaded}
       />

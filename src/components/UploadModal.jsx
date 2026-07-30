@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, X, Sparkles, PlusCircle, FormInput, Download, Globe, DollarSign, Target, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Upload, FileSpreadsheet, CheckCircle2, AlertCircle, X, Sparkles, PlusCircle, 
+  FormInput, Download, Globe, DollarSign, Target, Layers, FileText, Send, 
+  RefreshCw, Key, Trash2, Edit3, Wand2, Calendar, HelpCircle, ChevronRight 
+} from 'lucide-react';
 import { parseCampaignExcel } from '../utils/excelParser';
+import { parseProposalWithAI, SAMPLE_PROPOSALS, fineTuneCampaignWithPrompt } from '../utils/aiProposalParser';
 
-export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
-  const [activeTab, setActiveTab] = useState('direct'); // 'direct' or 'upload'
+export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initialTab = 'ai_proposal' }) {
+  const [activeTab, setActiveTab] = useState(initialTab); // 'ai_proposal', 'direct', or 'upload'
   
-  // Upload tab state
+  // Excel Upload tab state
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [parsing, setParsing] = useState(false);
@@ -25,17 +30,37 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
     targetFtd: 100,
     targetVolume: 50000,
     channels: ['Meta Ads', 'Google Search'],
-    // Initial Week 1 Data
     week1Spend: 2500,
     week1Leads: 120,
     week1AccountOpened: 80,
     week1Kyc: 60,
     week1Ftd: 25,
     week1GrossDeposit: 12000,
-    // Optional Webinar details
     webinarTopic: '',
     webinarDate: ''
   });
+
+  // AI Proposal Tab State
+  const [proposalText, setProposalText] = useState(SAMPLE_PROPOSALS[0].text);
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem('cpt_gemini_api_key') || '');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [generatedCampaign, setGeneratedCampaign] = useState(null);
+  const [fineTunePrompt, setFineTunePrompt] = useState('');
+
+  // Keep API Key updated in localStorage
+  useEffect(() => {
+    if (geminiApiKey) {
+      localStorage.setItem('cpt_gemini_api_key', geminiApiKey);
+    }
+  }, [geminiApiKey]);
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -74,23 +99,6 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
     };
 
     reader.readAsArrayBuffer(selectedFile);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
-    }
   };
 
   const handleConfirmImport = () => {
@@ -179,33 +187,78 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
     onClose();
   };
 
-  const handleDownloadTemplate = () => {
-    const link = document.createElement('a');
-    link.href = '/template_download.tmp';
-    link.download = 'CPT_Ads_Campaign_Form_Template.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Handle AI Proposal Processing
+  const handleAnalyzeProposal = async () => {
+    if (!proposalText || !proposalText.trim()) {
+      setAiError('Vui lòng nhập nội dung proposal hoặc chọn một bản mẫu bên dưới.');
+      return;
+    }
+
+    setAiError('');
+    setIsAiAnalyzing(true);
+    try {
+      const result = await parseProposalWithAI(proposalText, {
+        apiKey: geminiApiKey
+      });
+      setGeneratedCampaign(result);
+    } catch (err) {
+      console.error('AI proposal analysis failed:', err);
+      setAiError(err.message || 'Phân tích proposal thất bại. Vui lòng kiểm tra lại.');
+    } finally {
+      setIsAiAnalyzing(false);
+    }
+  };
+
+  // Handle Text File Upload for Proposal
+  const handleProposalFileUpload = (e) => {
+    const uploadedFile = e.target.files?.[0];
+    if (!uploadedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (text) {
+        setProposalText(String(text));
+        setAiError('');
+      }
+    };
+    reader.readAsText(uploadedFile);
+  };
+
+  // Handle Fine-tuning with AI prompt
+  const handleApplyFineTune = () => {
+    if (!fineTunePrompt.trim() || !generatedCampaign) return;
+    const updated = fineTuneCampaignWithPrompt(generatedCampaign, fineTunePrompt);
+    setGeneratedCampaign(updated);
+    setFineTunePrompt('');
+  };
+
+  // Handle Final Submission of Generated AI Campaign
+  const handleSaveAiCampaign = () => {
+    if (!generatedCampaign) return;
+    onCampaignUploaded(generatedCampaign);
+    onClose();
+    setGeneratedCampaign(null);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="glass-panel max-w-3xl w-full rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="glass-panel max-w-4xl w-full rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
-        {/* Header */}
-        <div className="p-5 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+        {/* Modal Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-800 bg-[#071322] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl gradient-gold-bg text-dark-900 font-bold">
-              <PlusCircle className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl gradient-cpt-brand text-[#071322] font-black shadow-md shadow-[#0AE5D5]/20">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                New Campaign Input Form
-                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Cloud Storage Sync
+              <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                Create & Input Ads Campaign
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#0AE5D5]/10 text-[#0AE5D5] border border-[#0AE5D5]/30">
+                  AI Engine Ready
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">Input campaign details directly or upload an Excel form</p>
+              <p className="text-xs text-slate-400">Generate campaigns from AI Proposals, direct forms, or Excel files</p>
             </div>
           </div>
           <button 
@@ -216,13 +269,25 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
           </button>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/60 px-6 pt-3 gap-4">
+        {/* Modal Tabs */}
+        <div className="flex border-b border-slate-800 bg-[#0A192F] px-4 sm:px-6 pt-3 gap-2 sm:gap-4 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('ai_proposal')}
+            className={`pb-3 px-3 text-xs font-bold flex items-center gap-2 border-b-2 transition shrink-0 ${
+              activeTab === 'ai_proposal'
+                ? 'border-[#0AE5D5] text-[#0AE5D5]'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>✨ AI Proposal Generator</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('direct')}
-            className={`pb-3 px-2 text-xs font-bold flex items-center gap-2 border-b-2 transition ${
+            className={`pb-3 px-3 text-xs font-bold flex items-center gap-2 border-b-2 transition shrink-0 ${
               activeTab === 'direct'
-                ? 'border-amber-400 text-amber-400'
+                ? 'border-[#0AE5D5] text-[#0AE5D5]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -232,25 +297,460 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
 
           <button
             onClick={() => setActiveTab('upload')}
-            className={`pb-3 px-2 text-xs font-bold flex items-center gap-2 border-b-2 transition ${
+            className={`pb-3 px-3 text-xs font-bold flex items-center gap-2 border-b-2 transition shrink-0 ${
               activeTab === 'upload'
-                ? 'border-amber-400 text-amber-400'
+                ? 'border-[#0AE5D5] text-[#0AE5D5]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <Upload className="w-4 h-4" />
-            <span>Upload Excel / CSV Form File</span>
+            <span>Upload Excel File</span>
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-5 overflow-y-auto flex-1">
+        {/* Modal Content */}
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 bg-[#071322]">
 
-          {/* TAB 1: DIRECT INPUT FORM */}
+          {/* ==================== TAB 1: AI PROPOSAL GENERATOR ==================== */}
+          {activeTab === 'ai_proposal' && (
+            <div className="space-y-5 text-xs">
+              
+              {!generatedCampaign ? (
+                // PROPOSAL INPUT VIEW
+                <div className="space-y-4">
+                  
+                  {/* Preset Selector */}
+                  <div className="space-y-2">
+                    <label className="block text-slate-300 font-bold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-amber-400">
+                        <Wand2 className="w-4 h-4" /> Chọn Proposal Mẫu (Sample Presets):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                        className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                        {geminiApiKey ? '🔑 Gemini API Key Active' : 'Cấu hình Gemini API Key (Tùy chọn)'}
+                      </button>
+                    </label>
+
+                    {showApiKeyInput && (
+                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 space-y-2 animate-fadeIn">
+                        <p className="text-[11px] text-slate-400">
+                          Nhập Gemini API Key của bạn để sử dụng AI nâng cao của Google (Hoặc để trống để dùng AI NLP offline tích hợp sẵn).
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            placeholder="AIzaSy..."
+                            value={geminiApiKey}
+                            onChange={(e) => setGeminiApiKey(e.target.value)}
+                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowApiKeyInput(false)}
+                            className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold hover:bg-cyan-500/30"
+                          >
+                            Save Key
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {SAMPLE_PROPOSALS.map(preset => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            setProposalText(preset.text);
+                            setAiError('');
+                          }}
+                          className={`p-2.5 rounded-xl text-left border transition flex flex-col justify-between ${
+                            proposalText === preset.text
+                              ? 'border-amber-400 bg-amber-500/10 text-amber-300'
+                              : 'border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          <span className="font-bold text-xs line-clamp-1">{preset.title}</span>
+                          <span className="text-[10px] text-slate-400 mt-1">Bấm để tải proposal mẫu</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Proposal Text Input & Upload File */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-slate-200 font-bold flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-emerald-400" />
+                        Dán nội dung Proposal hoặc tải file văn bản (.txt, .md):
+                      </label>
+                      <label className="cursor-pointer text-[11px] text-emerald-400 hover:underline font-semibold flex items-center gap-1">
+                        <Upload className="w-3.5 h-3.5" /> Tải file Proposal từ máy tính
+                        <input
+                          type="file"
+                          accept=".txt,.md,.text"
+                          onChange={handleProposalFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <textarea
+                      rows={10}
+                      value={proposalText}
+                      onChange={(e) => setProposalText(e.target.value)}
+                      placeholder="Dán nội dung đề xuất chiến dịch (proposal) của bạn tại đây..."
+                      className="w-full bg-[#030914] border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono leading-relaxed focus:outline-none focus:border-[#0AE5D5] transition shadow-inner"
+                    />
+                  </div>
+
+                  {/* Error Notification */}
+                  {aiError && (
+                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{aiError}</span>
+                    </div>
+                  )}
+
+                  {/* Action Submit */}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      disabled={isAiAnalyzing}
+                      onClick={handleAnalyzeProposal}
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] hover:brightness-110 disabled:opacity-50 transition shadow-lg shadow-[#0AE5D5]/20"
+                    >
+                      {isAiAnalyzing ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-[#071322] border-t-transparent rounded-full animate-spin"></div>
+                          <span>AI đang phân tích Proposal & tạo Form Campaign...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>⚡ Phân tích Proposal bằng AI & Đưa vào Form</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // GENERATED EDITABLE CAMPAIGN FORM VIEW
+                <div className="space-y-5 animate-fadeIn">
+                  
+                  {/* AI Strategic Diagnostics Header Banner */}
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-amber-500/10 border border-[#0AE5D5]/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                        <h3 className="font-bold text-white text-sm">
+                          AI Proposal Analysis Complete ({generatedCampaign.aiAnalysis?.confidenceScore || 95}% Match)
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGeneratedCampaign(null)}
+                        className="text-xs text-slate-400 hover:text-white underline"
+                      >
+                        Đổi Proposal khác
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-emerald-300 font-medium">
+                      🎯 <strong className="text-white">Chiến lược đề xuất:</strong> {generatedCampaign.overview?.objective}
+                    </p>
+
+                    {generatedCampaign.aiAnalysis?.recommendations && (
+                      <div className="text-[11px] text-slate-300 space-y-1 pt-1 border-t border-slate-800">
+                        {generatedCampaign.aiAnalysis.recommendations.map((rec, i) => (
+                          <div key={i} className="flex items-start gap-1.5">
+                            <ChevronRight className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                            <span>{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* FORM SECTION 1: OVERVIEW */}
+                  <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h4 className="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                      <Globe className="w-4 h-4" /> 1. Thông tin Tổng quan Chiến dịch (Editable)
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Tên chiến dịch *</label>
+                        <input
+                          type="text"
+                          value={generatedCampaign.overview.name}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            overview: { ...generatedCampaign.overview, name: e.target.value }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-bold focus:border-[#0AE5D5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Người phụ trách (Owner)</label>
+                        <input
+                          type="text"
+                          value={generatedCampaign.overview.owner}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            overview: { ...generatedCampaign.overview, owner: e.target.value }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:border-[#0AE5D5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Khu vực / Quốc gia</label>
+                        <input
+                          type="text"
+                          value={generatedCampaign.overview.region}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            overview: { ...generatedCampaign.overview, region: e.target.value }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:border-[#0AE5D5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Loại hình Campaign</label>
+                        <select
+                          value={generatedCampaign.overview.type}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            overview: { ...generatedCampaign.overview, type: e.target.value }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:border-[#0AE5D5]"
+                        >
+                          <option value="Lead Gen">Lead Gen Campaign</option>
+                          <option value="Webinar">Webinar Campaign</option>
+                          <option value="Brand Campaign">Brand Awareness</option>
+                          <option value="CPA Performance">CPA Performance</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FORM SECTION 2: BUDGET & TARGET KPIS */}
+                  <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h4 className="font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                      <Target className="w-4 h-4" /> 2. Ngân sách & Chỉ tiêu KPI Mục tiêu
+                    </h4>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Tổng ngân sách ($)</label>
+                        <input
+                          type="number"
+                          value={generatedCampaign.overview.totalBudget}
+                          onChange={(e) => {
+                            const newB = Number(e.target.value) || 0;
+                            setGeneratedCampaign({
+                              ...generatedCampaign,
+                              overview: { ...generatedCampaign.overview, totalBudget: newB }
+                            });
+                          }}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Target Leads</label>
+                        <input
+                          type="number"
+                          value={generatedCampaign.kpiTargets.leads}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            kpiTargets: { ...generatedCampaign.kpiTargets, leads: Number(e.target.value) || 0 }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Target CPL ($)</label>
+                        <input
+                          type="number"
+                          value={generatedCampaign.kpiTargets.cpl}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            kpiTargets: { ...generatedCampaign.kpiTargets, cpl: Number(e.target.value) || 0 }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-300 font-medium mb-1">Target FTDs</label>
+                        <input
+                          type="number"
+                          value={generatedCampaign.kpiTargets.ftd}
+                          onChange={(e) => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            kpiTargets: { ...generatedCampaign.kpiTargets, ftd: Number(e.target.value) || 0 }
+                          })}
+                          className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FORM SECTION 3: TIMELINE & DELIVERABLES */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Timeline */}
+                    <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-cyan-400 uppercase tracking-wider text-xs">Lịch thực thi (Timeline)</h4>
+                        <button
+                          type="button"
+                          onClick={() => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            timeline: [...generatedCampaign.timeline, { task: 'New Task', owner: generatedCampaign.overview.owner, status: 'Pending', deadline: 'Week 2' }]
+                          })}
+                          className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                        >
+                          <PlusCircle className="w-3 h-3" /> Thêm task
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {generatedCampaign.timeline.map((t, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                            <input
+                              type="text"
+                              value={t.task}
+                              onChange={(e) => {
+                                const newT = [...generatedCampaign.timeline];
+                                newT[idx].task = e.target.value;
+                                setGeneratedCampaign({ ...generatedCampaign, timeline: newT });
+                              }}
+                              className="flex-1 bg-transparent text-slate-200 focus:outline-none font-medium"
+                            />
+                            <span className="text-slate-500 font-mono">{t.deadline}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newT = generatedCampaign.timeline.filter((_, i) => i !== idx);
+                                setGeneratedCampaign({ ...generatedCampaign, timeline: newT });
+                              }}
+                              className="text-slate-500 hover:text-red-400 p-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Deliverables */}
+                    <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-amber-400 uppercase tracking-wider text-xs">Hạng mục Bàn giao (Deliverables)</h4>
+                        <button
+                          type="button"
+                          onClick={() => setGeneratedCampaign({
+                            ...generatedCampaign,
+                            deliverables: [...generatedCampaign.deliverables, { name: 'New Deliverable', status: 'Ready', link: '#' }]
+                          })}
+                          className="text-[10px] text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                        >
+                          <PlusCircle className="w-3 h-3" /> Thêm bàn giao
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {generatedCampaign.deliverables.map((d, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800 text-[11px]">
+                            <input
+                              type="text"
+                              value={d.name}
+                              onChange={(e) => {
+                                const newD = [...generatedCampaign.deliverables];
+                                newD[idx].name = e.target.value;
+                                setGeneratedCampaign({ ...generatedCampaign, deliverables: newD });
+                              }}
+                              className="flex-1 bg-transparent text-slate-200 focus:outline-none font-medium"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newD = generatedCampaign.deliverables.filter((_, i) => i !== idx);
+                                setGeneratedCampaign({ ...generatedCampaign, deliverables: newD });
+                              }}
+                              className="text-slate-500 hover:text-red-400 p-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FINE-TUNE WITH AI PROMPT BOX */}
+                  <div className="p-3.5 rounded-xl bg-[#030914] border border-[#0AE5D5]/40 space-y-2">
+                    <label className="text-[11px] font-bold text-[#0AE5D5] flex items-center gap-1.5">
+                      <Wand2 className="w-3.5 h-3.5" /> Thêm yêu cầu chỉnh sửa nhanh bằng AI Prompt:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={fineTunePrompt}
+                        onChange={(e) => setFineTunePrompt(e.target.value)}
+                        placeholder="Ví dụ: Tăng ngân sách lên 20k, giao cho Nguyen Hao Ha và phân bổ 60% Meta Ads..."
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#0AE5D5]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyFineTune}
+                        className="px-4 py-1.5 rounded-xl bg-[#0AE5D5] text-[#071322] font-bold text-xs hover:brightness-110 transition shrink-0 flex items-center gap-1"
+                      >
+                        <Send className="w-3.5 h-3.5" /> Apply
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* FINAL ACTION BUTTONS */}
+                  <div className="pt-2 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setGeneratedCampaign(null)}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                    >
+                      Làm lại (Re-analyze)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveAiCampaign}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] hover:brightness-110 transition shadow-lg shadow-[#0AE5D5]/20"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>✨ Xác nhận & Tạo Campaign vào Hệ Thống</span>
+                    </button>
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* ==================== TAB 2: DIRECT INPUT FORM ==================== */}
           {activeTab === 'direct' && (
             <form onSubmit={handleDirectFormSubmit} className="space-y-4 text-xs">
               
-              {/* Campaign Overview Section */}
+              {/* Overview */}
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
                 <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Globe className="w-3.5 h-3.5" /> Campaign Overview
@@ -265,7 +765,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                       placeholder="e.g. Q3 SEA Meta & Google Acquisition"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-[#0AE5D5]"
                     />
                   </div>
 
@@ -276,58 +776,23 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                       placeholder="e.g. Nguyen Hao Ha"
                       value={formData.owner}
                       onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-[#0AE5D5]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-medium mb-1">Region / Country (Ads Account)</label>
+                    <label className="block text-slate-300 font-medium mb-1">Region / Country</label>
                     <select
                       value={formData.region}
                       onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                      className="w-full bg-[#071322] border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-[#0AE5D5]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-[#0AE5D5]"
                     >
-                      <optgroup label="Southeast Asia (SEA)">
-                        <option value="Vietnam (VN)">🇻🇳 Vietnam (VN)</option>
-                        <option value="Thailand (TH)">🇹🇭 Thailand (TH)</option>
-                        <option value="Malaysia (MY)">🇲🇾 Malaysia (MY)</option>
-                        <option value="Indonesia (ID)">🇮🇩 Indonesia (ID)</option>
-                        <option value="Philippines (PH)">🇵🇭 Philippines (PH)</option>
-                        <option value="Singapore (SG)">🇸🇬 Singapore (SG)</option>
-                        <option value="SEA Regional">🌏 SEA Regional (Multi-country)</option>
-                      </optgroup>
-                      <optgroup label="East Asia & Pacific">
-                        <option value="Taiwan (TW)">🇹🇼 Taiwan (TW)</option>
-                        <option value="Hong Kong (HK)">🇭🇰 Hong Kong (HK)</option>
-                        <option value="Korea (KR)">🇰🇷 Korea (KR)</option>
-                        <option value="Japan (JP)">🇯🇵 Japan (JP)</option>
-                      </optgroup>
-                      <optgroup label="South Asia & Middle East">
-                        <option value="India (IN)">🇮🇳 India (IN)</option>
-                        <option value="UAE / Dubai (AE)">🇦🇪 UAE / Dubai (AE)</option>
-                        <option value="Saudi Arabia (KSA)">🇸🇦 Saudi Arabia (KSA)</option>
-                        <option value="MENA Regional">🕌 MENA Regional</option>
-                      </optgroup>
-                      <optgroup label="Americas & Europe">
-                        <option value="Brazil (BR)">🇧🇷 Brazil (BR)</option>
-                        <option value="Mexico (MX)">🇲🇽 Mexico (MX)</option>
-                        <option value="LatAm Regional">💃 LatAm Regional</option>
-                        <option value="UK & Europe">🇪🇺 UK & Europe</option>
-                      </optgroup>
-                      <optgroup label="Global & Custom">
-                        <option value="Global">🌍 Global (Multi-Region)</option>
-                        <option value="Custom">✏️ Custom Country / Ad Account...</option>
-                      </optgroup>
+                      <option value="Vietnam (VN)">🇻🇳 Vietnam (VN)</option>
+                      <option value="Thailand (TH)">🇹🇭 Thailand (TH)</option>
+                      <option value="Malaysia (MY)">🇲🇾 Malaysia (MY)</option>
+                      <option value="SEA Regional">🌏 SEA Regional</option>
+                      <option value="Global">🌍 Global</option>
                     </select>
-
-                    {formData.region === 'Custom' && (
-                      <input
-                        type="text"
-                        placeholder="Enter specific country or ad account (e.g. VN Meta Ads #2)..."
-                        onChange={(e) => setFormData({ ...formData, regionCustom: e.target.value })}
-                        className="w-full bg-[#071322] border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-[#0AE5D5] mt-2 animate-fadeIn"
-                      />
-                    )}
                   </div>
 
                   <div>
@@ -335,7 +800,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                     <select
                       value={formData.type}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-[#0AE5D5]"
                     >
                       <option value="Lead Gen">Lead Gen Campaign</option>
                       <option value="Webinar">Webinar Campaign</option>
@@ -346,7 +811,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                 </div>
               </div>
 
-              {/* Budget & KPI Targets Section */}
+              {/* Budget & KPI Targets */}
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
                 <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                   <Target className="w-3.5 h-3.5" /> Budget & KPI Targets
@@ -359,119 +824,39 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                       type="number"
                       value={formData.totalBudget}
                       onChange={(e) => setFormData({ ...formData, totalBudget: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold"
                     />
                   </div>
-
                   <div>
                     <label className="block text-slate-300 font-medium mb-1">Target Leads</label>
                     <input
                       type="number"
                       value={formData.targetLeads}
                       onChange={(e) => setFormData({ ...formData, targetLeads: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
                     />
                   </div>
-
                   <div>
                     <label className="block text-slate-300 font-medium mb-1">Target CPL ($)</label>
                     <input
                       type="number"
                       value={formData.targetCpl}
                       onChange={(e) => setFormData({ ...formData, targetCpl: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
                     />
                   </div>
-
                   <div>
                     <label className="block text-slate-300 font-medium mb-1">Target FTDs</label>
                     <input
                       type="number"
                       value={formData.targetFtd}
                       onChange={(e) => setFormData({ ...formData, targetFtd: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-amber-400"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Initial Week 1 Performance Input */}
-              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-                <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5" /> Initial Week 1 Performance (Optional)
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-slate-400 text-[11px] mb-1">Week 1 Spend ($)</label>
-                    <input
-                      type="number"
-                      value={formData.week1Spend}
-                      onChange={(e) => setFormData({ ...formData, week1Spend: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-[11px] mb-1">Week 1 Leads</label>
-                    <input
-                      type="number"
-                      value={formData.week1Leads}
-                      onChange={(e) => setFormData({ ...formData, week1Leads: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-[11px] mb-1">Week 1 FTDs</label>
-                    <input
-                      type="number"
-                      value={formData.week1Ftd}
-                      onChange={(e) => setFormData({ ...formData, week1Ftd: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-[11px] mb-1">Gross Deposit ($)</label>
-                    <input
-                      type="number"
-                      value={formData.week1GrossDeposit}
-                      onChange={(e) => setFormData({ ...formData, week1GrossDeposit: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-emerald-400 font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Webinar optional details */}
-              {formData.type === 'Webinar' && (
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
-                  <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                    Webinar Details
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-slate-300 font-medium mb-1">Webinar Topic</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Master Gold & Forex Trading 2026"
-                        value={formData.webinarTopic}
-                        onChange={(e) => setFormData({ ...formData, webinarTopic: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 font-medium mb-1">Webinar Date</label>
-                      <input
-                        type="date"
-                        value={formData.webinarDate}
-                        onChange={(e) => setFormData({ ...formData, webinarDate: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Error Message */}
               {error && (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -482,29 +867,31 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
               <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold gradient-gold-bg text-dark-900 hover:brightness-110 transition shadow-lg shadow-amber-900/20"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold gradient-cpt-brand text-[#071322] hover:brightness-110 transition shadow-lg shadow-[#0AE5D5]/20"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Create Campaign & Sync to Cloud</span>
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Create Campaign</span>
                 </button>
               </div>
             </form>
           )}
 
-          {/* TAB 2: EXCEL FILE UPLOAD */}
+          {/* ==================== TAB 3: EXCEL FILE UPLOAD ==================== */}
           {activeTab === 'upload' && (
             <div className="space-y-5">
-              
-              {/* Dropzone */}
               {!previewData && (
                 <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files?.[0]) handleFileSelect(e.dataTransfer.files[0]);
+                  }}
                   className={`border-2 border-dashed rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center gap-3 ${
                     isDragging 
-                      ? 'border-amber-400 bg-amber-500/10' 
-                      : 'border-slate-700/80 hover:border-amber-500/50 bg-slate-900/40 hover:bg-slate-900/70'
+                      ? 'border-[#0AE5D5] bg-[#0AE5D5]/10' 
+                      : 'border-slate-700/80 hover:border-[#0AE5D5]/50 bg-slate-900/40 hover:bg-slate-900/70'
                   }`}
                 >
                   <input
@@ -515,35 +902,26 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                     id="file-upload-input"
                   />
                   <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 mb-2 shadow-inner">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-[#0AE5D5] mb-2 shadow-inner">
                       <FileSpreadsheet className="w-7 h-7" />
                     </div>
                     <span className="text-sm font-semibold text-slate-200 mb-1">
                       Click to browse or drop CPT Excel Form here
                     </span>
-                    <span className="text-xs text-slate-400 mb-3">
+                    <span className="text-xs text-slate-400">
                       Supports standard CPT template files (.xlsx, .xls)
                     </span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); handleDownloadTemplate(); }}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-medium flex items-center gap-1.5 border border-slate-700 transition"
-                    >
-                      <Download className="w-3.5 h-3.5" /> Download CPT Excel Template
-                    </button>
                   </label>
                 </div>
               )}
 
-              {/* Parsing Loading Indicator */}
               {parsing && (
                 <div className="p-6 text-center space-y-3 bg-slate-900/60 rounded-xl border border-slate-800">
-                  <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="text-xs text-slate-300 font-medium">Parsing campaign overview, timeline, deliverables, budget & KPI sheets...</p>
+                  <div className="w-8 h-8 border-3 border-[#0AE5D5] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="text-xs text-slate-300 font-medium">Parsing campaign sheets...</p>
                 </div>
               )}
 
-              {/* Error Message */}
               {error && (
                 <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -551,13 +929,12 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                 </div>
               )}
 
-              {/* Preview Parsed Campaign Data */}
               {previewData && !parsing && (
                 <div className="space-y-4 animate-fadeIn text-xs">
                   <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="font-semibold">Successfully Extracted CPT Form Data!</span>
+                      <span className="font-semibold">Extracted CPT Form Data Successfully!</span>
                     </div>
                     <button 
                       onClick={() => { setPreviewData(null); setFile(null); }}
@@ -567,41 +944,24 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                     </button>
                   </div>
 
-                  {/* Extracted Details Box */}
-                  <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3 text-xs">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                  <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                    <div className="flex justify-between">
                       <span className="text-slate-400">Campaign Name:</span>
-                      <span className="font-bold text-amber-400">{previewData.overview.name}</span>
+                      <span className="font-bold text-[#0AE5D5]">{previewData.overview.name}</span>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <span className="text-slate-500 block">Owner:</span>
-                        <span className="text-slate-200 font-medium">{previewData.overview.owner}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block">Region / Type:</span>
-                        <span className="text-slate-200 font-medium">{previewData.overview.region} • {previewData.overview.type}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block">Total Budget:</span>
-                        <span className="text-emerald-400 font-mono font-bold">${previewData.overview.totalBudget?.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block">KPI Weeks Extracted:</span>
-                        <span className="text-slate-200 font-mono">{previewData.kpiTracking?.length || 0} Weeks</span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total Budget:</span>
+                      <span className="text-emerald-400 font-mono font-bold">${previewData.overview.totalBudget?.toLocaleString()}</span>
                     </div>
                   </div>
 
                   <div className="flex justify-end pt-2">
                     <button
-                      disabled={!previewData || parsing}
                       onClick={handleConfirmImport}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold gradient-gold-bg text-dark-900 hover:brightness-110 disabled:opacity-50 disabled:pointer-events-none transition shadow-lg shadow-amber-900/20"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-semibold gradient-cpt-brand text-[#071322] hover:brightness-110 transition shadow-lg shadow-[#0AE5D5]/20"
                     >
                       <Sparkles className="w-4 h-4" />
-                      <span>Confirm & Import to Cloud System</span>
+                      <span>Confirm & Import Campaign</span>
                     </button>
                   </div>
                 </div>

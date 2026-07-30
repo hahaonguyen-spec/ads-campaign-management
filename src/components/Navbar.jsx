@@ -1,19 +1,18 @@
 import React from 'react';
 import { 
-  BarChart3, Upload, Download, RefreshCw, Search, Cloud, PlusCircle, Type 
+  BarChart3, Upload, Download, RefreshCw, Search, Cloud, PlusCircle, Type, Sparkles 
 } from 'lucide-react';
 
 export default function Navbar({ 
   searchTerm, 
   setSearchTerm, 
   onOpenUpload, 
+  onOpenAiProposal,
   onOpenCloudSettings,
   onDownloadTemplate, 
   onResetDemo,
   campaignCount = 0,
-  activeCount = 0,
-  textSizeScale = 'normal',
-  onChangeTextSize
+  activeCount = 0
 }) {
   return (
     <header className="sticky top-0 z-40 bg-[#071322]/95 backdrop-blur-md border-b border-slate-800">
@@ -64,7 +63,15 @@ export default function Navbar({
             <span>{activeCount} / {campaignCount} Active</span>
           </div>
 
-
+          {/* AI Proposal Generator Button */}
+          <button
+            onClick={onOpenAiProposal || onOpenUpload}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 transition shadow-md shadow-amber-500/10"
+            title="Create Campaign from AI Proposal"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">AI Proposal</span>
+          </button>
 
           {/* Cloud Storage Status & Settings Button */}
           <button
@@ -79,7 +86,7 @@ export default function Navbar({
           {/* Download Template Button */}
           <button
             onClick={onDownloadTemplate}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-[#0C2038] hover:bg-[#1E375E] text-slate-200 border border-slate-700 transition"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-[#0C2038] hover:bg-[#1E375E] text-slate-200 border border-slate-700 transition"
             title="Download CPT Campaign Excel Form (.xlsx)"
           >
             <Download className="w-4 h-4 text-[#33CCFF]" />
@@ -111,4 +118,3 @@ export default function Navbar({
     </header>
   );
 }
-

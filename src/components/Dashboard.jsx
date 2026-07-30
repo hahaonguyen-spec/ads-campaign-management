@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   BarChart3, TrendingUp, DollarSign, Users, Target, Rocket, CalendarClock, 
-  Search, Plus, LayoutGrid, List, ChevronRight, Eye, Trash2, ArrowUpRight, Zap, Calculator
+  Search, Plus, LayoutGrid, List, ChevronRight, Eye, Trash2, ArrowUpRight, Zap, Calculator, Sparkles
 } from 'lucide-react';
 import CampaignCard from './CampaignCard';
 import WeeklyAggregationTable from './WeeklyAggregationTable';
@@ -12,6 +12,7 @@ export default function Dashboard({
   onSelectCampaign, 
   onDeleteCampaign, 
   onOpenUpload, 
+  onOpenAiProposal,
   onOpenMetricInput, 
   searchTerm, 
   setSearchTerm 
@@ -181,20 +182,17 @@ export default function Dashboard({
             onClick={() => setStatusFilter('Planned')}
             className={`px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 ${
               statusFilter === 'Planned'
-                ? 'bg-[#33CCFF]/20 text-[#33CCFF] border border-[#33CCFF]/40 shadow-sm'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
                 : 'bg-[#071322] text-slate-300 hover:text-white border border-slate-700'
             }`}
           >
-            <CalendarClock className="w-3.5 h-3.5 text-[#33CCFF]" />
-            <span>Planned (Expected Target)</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-[#33CCFF]/30 text-[#33CCFF] font-mono">
-              {campaigns.filter(c => c.overview?.status === 'Planned' && (!c.kpiTracking || !c.kpiTracking.some(r => Number(r.spend) > 0))).length}
-            </span>
+            <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
+            <span>Planned</span>
           </button>
         </div>
 
         {/* TOP-RIGHT CONTROLS: Region Filter & Box/List View Switcher */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
           
           {/* Region Dropdown */}
           <select
@@ -237,13 +235,22 @@ export default function Dashboard({
             </button>
           </div>
 
+          {/* AI Proposal Generator Button */}
+          <button
+            onClick={onOpenAiProposal || onOpenUpload}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 transition shadow-md shadow-amber-500/10"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>AI Proposal</span>
+          </button>
+
           {/* Upload Button */}
           <button
             onClick={onOpenUpload}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black gradient-cpt-brand text-[#071322] hover:brightness-110 shadow-lg shadow-[#0AE5D5]/20"
           >
             <Plus className="w-4 h-4" />
-            <span>Upload Form</span>
+            <span>Form Input</span>
           </button>
 
         </div>
