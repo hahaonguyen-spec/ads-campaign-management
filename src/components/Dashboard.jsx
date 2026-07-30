@@ -65,73 +65,73 @@ export default function Dashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Total Spend */}
-        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#33CCFF]/30 glass-panel-hover space-y-2.5 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#33CCFF]/30 glass-panel-hover space-y-3 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#33CCFF]/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="font-bold uppercase tracking-wider text-xs text-slate-200">Total Spends</span>
+          <div className="flex items-center justify-between text-sm text-slate-200">
+            <span className="font-extrabold uppercase tracking-wider text-sm text-slate-200">Total Spends</span>
             <div className="p-2.5 rounded-xl bg-[#33CCFF]/15 text-[#33CCFF] border border-[#33CCFF]/30">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">${analytics.totalSpend?.toLocaleString()}</span>
-            <span className="text-xs sm:text-sm font-mono text-[#0AE5D5] font-extrabold bg-[#0AE5D5]/10 px-2 py-0.5 rounded-md border border-[#0AE5D5]/30">Active Ads</span>
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">${analytics.totalSpend?.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm text-[#0AE5D5] font-black bg-[#0AE5D5]/10 px-2.5 py-1 rounded-lg border border-[#0AE5D5]/30">Active Ads</span>
           </div>
-          <div className="text-xs text-slate-400 font-mono">
-            Across <strong className="text-slate-200">{analytics.activeCount}</strong> live campaigns
+          <div className="text-xs sm:text-sm text-slate-300 font-medium">
+            Across <strong className="text-white font-black">{analytics.activeCount}</strong> live campaigns
           </div>
         </div>
 
         {/* Card 2: Total CRM Leads */}
-        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#0AE5D5]/30 glass-panel-hover space-y-2.5 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#0AE5D5]/30 glass-panel-hover space-y-3 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#0AE5D5]/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="font-bold uppercase tracking-wider text-xs text-slate-200">Total CRM Leads</span>
+          <div className="flex items-center justify-between text-sm text-slate-200">
+            <span className="font-extrabold uppercase tracking-wider text-sm text-slate-200">Total CRM Leads</span>
             <div className="p-2.5 rounded-xl bg-[#0AE5D5]/15 text-[#0AE5D5] border border-[#0AE5D5]/30">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-[#33CCFF] tracking-tight">{analytics.totalLeads?.toLocaleString()}</span>
-            <span className="text-xs sm:text-sm font-mono font-extrabold text-[#0AE5D5] bg-[#0AE5D5]/10 px-2 py-0.5 rounded-md border border-[#0AE5D5]/30">${analytics.overallCpl?.toFixed(2)} CPL</span>
+            <span className="text-3xl sm:text-4xl font-black text-[#33CCFF] tracking-tight">{analytics.totalLeads?.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-black text-[#0AE5D5] bg-[#0AE5D5]/10 px-2.5 py-1 rounded-lg border border-[#0AE5D5]/30">${analytics.overallCpl?.toFixed(2)} CPL</span>
           </div>
-          <div className="text-xs text-slate-400 font-mono">
+          <div className="text-xs sm:text-sm text-slate-300 font-medium">
             Verified leads in CRM
           </div>
         </div>
 
         {/* Card 3: First Time Depositors (FTD) */}
-        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-sky-500/30 glass-panel-hover space-y-2.5 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-sky-500/30 glass-panel-hover space-y-3 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="font-bold uppercase tracking-wider text-xs text-slate-200">Total FTDs (Traders)</span>
+          <div className="flex items-center justify-between text-sm text-slate-200">
+            <span className="font-extrabold uppercase tracking-wider text-sm text-slate-200">Total FTDs (Traders)</span>
             <div className="p-2.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30">
               <Target className="w-5 h-5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-sky-200 tracking-tight">{analytics.totalFtd?.toLocaleString()}</span>
-            <span className="text-xs sm:text-sm font-mono font-extrabold text-[#33CCFF] bg-[#33CCFF]/10 px-2 py-0.5 rounded-md border border-[#33CCFF]/30">${analytics.overallCostPerFtd?.toFixed(2)} /FTD</span>
+            <span className="text-3xl sm:text-4xl font-black text-sky-200 tracking-tight">{analytics.totalFtd?.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-black text-[#33CCFF] bg-[#33CCFF]/10 px-2.5 py-1 rounded-lg border border-[#33CCFF]/30">${analytics.overallCostPerFtd?.toFixed(2)} /FTD</span>
           </div>
-          <div className="text-xs text-slate-400 font-mono">
-            Conversion: <strong className="text-sky-300">{analytics.ftdConversionRate}%</strong>
+          <div className="text-xs sm:text-sm text-slate-300 font-medium">
+            Conversion: <strong className="text-sky-300 font-black">{analytics.ftdConversionRate}%</strong>
           </div>
         </div>
 
         {/* Card 4: Net Margin Income (NMI) */}
-        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#0AE5D5]/40 glass-panel-hover space-y-2.5 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038] cpt-glow">
+        <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-[#0AE5D5]/40 glass-panel-hover space-y-3 relative overflow-hidden bg-gradient-to-b from-[#112037] to-[#0C2038] cpt-glow">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#0AE5D5]/20 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="font-black uppercase tracking-wider text-xs text-[#0AE5D5]">NMI Net Revenue</span>
+          <div className="flex items-center justify-between text-sm text-slate-200">
+            <span className="font-black uppercase tracking-wider text-sm text-[#0AE5D5]">NMI Net Revenue</span>
             <div className="p-2.5 rounded-xl gradient-cpt-brand text-[#071322] shadow font-black">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <span className="text-2xl sm:text-3xl font-black font-mono text-[#0AE5D5] tracking-tight">${analytics.totalNmi?.toLocaleString()}</span>
-            <span className="text-xs sm:text-sm font-mono font-extrabold text-[#33CCFF]">Dep: ${analytics.totalNetDeposit?.toLocaleString()}</span>
+            <span className="text-3xl sm:text-4xl font-black text-[#0AE5D5] tracking-tight">${analytics.totalNmi?.toLocaleString()}</span>
+            <span className="text-xs sm:text-sm font-black text-[#33CCFF]">Dep: ${analytics.totalNetDeposit?.toLocaleString()}</span>
           </div>
-          <div className="text-xs text-[#0AE5D5] font-mono font-bold">
+          <div className="text-xs sm:text-sm text-[#0AE5D5] font-bold">
             CPT Net Revenue Return
           </div>
         </div>
