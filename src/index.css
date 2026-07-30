@@ -7,23 +7,23 @@
     background-color: #071322;
     color: #F1F5F9;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 15px; /* Default base text size is increased from 14px to 15px */
-    line-height: 1.5;
+    font-size: 17px; /* Increased base text size to 17px for ultra-clear web readability */
+    line-height: 1.6;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
 /* Font Size Scaling Classes */
 .font-scale-normal {
-  font-size: 100%;
+  font-size: 106%; /* ~18px base text */
 }
 
 .font-scale-large {
-  font-size: 112.5%; /* ~18px base */
+  font-size: 120%; /* ~20.4px base text */
 }
 
 .font-scale-xl {
-  font-size: 125%; /* ~20px base */
+  font-size: 135%; /* ~23px base text */
 }
 
 /* Ensure mobile inputs do not auto-zoom on iOS */
