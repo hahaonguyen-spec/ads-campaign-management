@@ -16,7 +16,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
   const [formData, setFormData] = useState({
     name: '',
     owner: '',
-    region: 'SEA',
+    region: 'Vietnam (VN)',
     type: 'Lead Gen',
     status: 'Launching',
     totalBudget: 10000,
@@ -117,7 +117,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
         id: campaignId,
         name: formData.name,
         owner: formData.owner || 'Marketing Manager',
-        region: formData.region,
+        region: formData.region === 'Custom' ? (formData.regionCustom || 'Vietnam (VN)') : formData.region,
         type: formData.type,
         status: formData.status,
         totalBudget: Number(formData.totalBudget) || 10000,
@@ -281,18 +281,53 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded }) {
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-medium mb-1">Region</label>
+                    <label className="block text-slate-300 font-medium mb-1">Region / Country (Ads Account)</label>
                     <select
                       value={formData.region}
                       onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400"
+                      className="w-full bg-[#071322] border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-[#0AE5D5]"
                     >
-                      <option value="SEA">SEA (Southeast Asia)</option>
-                      <option value="Global">Global</option>
-                      <option value="LatAm">LatAm (Latin America)</option>
-                      <option value="MENA">MENA (Middle East)</option>
-                      <option value="Europe">Europe</option>
+                      <optgroup label="Southeast Asia (SEA)">
+                        <option value="Vietnam (VN)">🇻🇳 Vietnam (VN)</option>
+                        <option value="Thailand (TH)">🇹🇭 Thailand (TH)</option>
+                        <option value="Malaysia (MY)">🇲🇾 Malaysia (MY)</option>
+                        <option value="Indonesia (ID)">🇮🇩 Indonesia (ID)</option>
+                        <option value="Philippines (PH)">🇵🇭 Philippines (PH)</option>
+                        <option value="Singapore (SG)">🇸🇬 Singapore (SG)</option>
+                        <option value="SEA Regional">🌏 SEA Regional (Multi-country)</option>
+                      </optgroup>
+                      <optgroup label="East Asia & Pacific">
+                        <option value="Taiwan (TW)">🇹🇼 Taiwan (TW)</option>
+                        <option value="Hong Kong (HK)">🇭🇰 Hong Kong (HK)</option>
+                        <option value="Korea (KR)">🇰🇷 Korea (KR)</option>
+                        <option value="Japan (JP)">🇯🇵 Japan (JP)</option>
+                      </optgroup>
+                      <optgroup label="South Asia & Middle East">
+                        <option value="India (IN)">🇮🇳 India (IN)</option>
+                        <option value="UAE / Dubai (AE)">🇦🇪 UAE / Dubai (AE)</option>
+                        <option value="Saudi Arabia (KSA)">🇸🇦 Saudi Arabia (KSA)</option>
+                        <option value="MENA Regional">🕌 MENA Regional</option>
+                      </optgroup>
+                      <optgroup label="Americas & Europe">
+                        <option value="Brazil (BR)">🇧🇷 Brazil (BR)</option>
+                        <option value="Mexico (MX)">🇲🇽 Mexico (MX)</option>
+                        <option value="LatAm Regional">💃 LatAm Regional</option>
+                        <option value="UK & Europe">🇪🇺 UK & Europe</option>
+                      </optgroup>
+                      <optgroup label="Global & Custom">
+                        <option value="Global">🌍 Global (Multi-Region)</option>
+                        <option value="Custom">✏️ Custom Country / Ad Account...</option>
+                      </optgroup>
                     </select>
+
+                    {formData.region === 'Custom' && (
+                      <input
+                        type="text"
+                        placeholder="Enter specific country or ad account (e.g. VN Meta Ads #2)..."
+                        onChange={(e) => setFormData({ ...formData, regionCustom: e.target.value })}
+                        className="w-full bg-[#071322] border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-[#0AE5D5] mt-2 animate-fadeIn"
+                      />
+                    )}
                   </div>
 
                   <div>
