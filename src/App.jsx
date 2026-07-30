@@ -116,7 +116,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans font-scale-${textSizeScale}`}>
+    <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col font-sans">
       
       <Navbar
         searchTerm={searchTerm}
@@ -127,8 +127,6 @@ export default function App() {
         onResetDemo={handleResetDemo}
         campaignCount={(campaigns || []).length}
         activeCount={activeCount}
-        textSizeScale={textSizeScale}
-        onChangeTextSize={handleTextSizeChange}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-24 md:pb-8">
@@ -157,8 +155,6 @@ export default function App() {
         onGoHome={() => setSelectedCampaignId(null)}
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenCloudSettings={() => setIsCloudSettingsOpen(true)}
-        textSizeScale={textSizeScale}
-        onChangeTextSize={handleTextSizeChange}
         onToggleSearch={() => {
           setSelectedCampaignId(null);
           const el = document.getElementById('global-search-input');

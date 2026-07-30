@@ -64,42 +64,7 @@ export default function Navbar({
             <span>{activeCount} / {campaignCount} Active</span>
           </div>
 
-          {/* FONT SIZE SCALER BUTTON (Desktop / Header) */}
-          <div className="flex items-center bg-[#0C2038] border border-slate-700 rounded-xl p-0.5 text-xs">
-            <button
-              onClick={() => onChangeTextSize('normal')}
-              className={`px-2 py-1 rounded-lg font-bold transition ${
-                textSizeScale === 'normal'
-                  ? 'bg-[#0AE5D5] text-[#071322]'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Normal Text Size (100%)"
-            >
-              A
-            </button>
-            <button
-              onClick={() => onChangeTextSize('large')}
-              className={`px-2 py-1 rounded-lg font-bold text-sm transition ${
-                textSizeScale === 'large'
-                  ? 'bg-[#0AE5D5] text-[#071322]'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Large Text Size (115%)"
-            >
-              A+
-            </button>
-            <button
-              onClick={() => onChangeTextSize('xl')}
-              className={`px-2 py-1 rounded-lg font-black text-base transition ${
-                textSizeScale === 'xl'
-                  ? 'bg-[#0AE5D5] text-[#071322]'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Extra Large Text Size (130%)"
-            >
-              A++
-            </button>
-          </div>
+
 
           {/* Cloud Storage Status & Settings Button */}
           <button
