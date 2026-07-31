@@ -326,41 +326,58 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initi
                 // PROPOSAL INPUT VIEW
                 <div className="space-y-4">
                   
-                  {/* Preset Selector */}
+                  {/* Preset Selector & Gemini API Key Box */}
                   <div className="space-y-2">
-                    <label className="block text-slate-300 font-bold flex items-center justify-between">
-                      <span className="flex items-center gap-1.5 text-amber-400">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
                         <Wand2 className="w-4 h-4" /> Chọn Proposal Mẫu (Sample Presets):
                       </span>
                       <button
                         type="button"
                         onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                        className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1"
+                        className="text-xs text-[#0AE5D5] hover:underline flex items-center gap-1 font-bold"
                       >
                         <Key className="w-3.5 h-3.5" />
-                        {geminiApiKey ? '🔑 Gemini API Key Active' : 'Cấu hình Gemini API Key (Tùy chọn)'}
+                        {geminiApiKey ? '🔑 Gemini API Key Active (Đã lưu)' : '⚙️ Kết nối Gemini API Key của bạn'}
                       </button>
-                    </label>
+                    </div>
 
+                    {/* Extended Gemini API Key Guide Box */}
                     {showApiKeyInput && (
-                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-700 space-y-2 animate-fadeIn">
-                        <p className="text-[11px] text-slate-400">
-                          Nhập Gemini API Key của bạn để sử dụng AI nâng cao của Google (Hoặc để trống để dùng AI NLP offline tích hợp sẵn).
+                      <div className="p-4 rounded-xl bg-[#030914] border border-[#0AE5D5]/40 space-y-3 animate-fadeIn text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            <Key className="w-4 h-4 text-amber-400" /> Hướng dẫn Kết nối Tài khoản Google Gemini:
+                          </span>
+                          <a
+                            href="https://aistudio.google.com/app/apikey"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 rounded-lg bg-[#0AE5D5] text-[#071322] font-extrabold hover:brightness-110 transition flex items-center gap-1 text-[11px]"
+                          >
+                            <span>🔗 Lấy Gemini API Key Miễn Phí (Google AI Studio)</span>
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          Để kết nối tài khoản Gemini của bạn: Bấm nút trên ↗ để mở Google AI Studio (đăng nhập bằng Google account), ấn <strong>"Create API Key"</strong>, sau đó dán mã API Key bắt đầu bằng <code>AIzaSy...</code> vào ô bên dưới:
                         </p>
                         <div className="flex gap-2">
                           <input
                             type="password"
-                            placeholder="AIzaSy..."
+                            placeholder="Dán Gemini API Key (ví dụ: AIzaSy...)"
                             value={geminiApiKey}
                             onChange={(e) => setGeminiApiKey(e.target.value)}
-                            className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono"
+                            className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-[#0AE5D5]"
                           />
                           <button
                             type="button"
-                            onClick={() => setShowApiKeyInput(false)}
-                            className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold hover:bg-cyan-500/30"
+                            onClick={() => {
+                              if (geminiApiKey) localStorage.setItem('cpt_gemini_api_key', geminiApiKey);
+                              setShowApiKeyInput(false);
+                            }}
+                            className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 hover:bg-emerald-500/30"
                           >
-                            Save Key
+                            Lưu API Key
                           </button>
                         </div>
                       </div>
@@ -373,6 +390,7 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initi
                           type="button"
                           onClick={() => {
                             setProposalText(preset.text);
+                            setProposalFileName('');
                             setAiError('');
                           }}
                           className={`p-2.5 rounded-xl text-left border transition flex flex-col justify-between ${
@@ -388,41 +406,68 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initi
                     </div>
                   </div>
 
-                  {/* Proposal Text Input & Upload File */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <label className="text-slate-200 font-bold flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-emerald-400" />
-                        Dán nội dung hoặc Tải file Proposal (PDF, DOCX, XLSX, TXT, CSV...):
-                      </label>
-                      
-                      <div className="flex items-center gap-2">
+                  {/* PROPOSAL FILE DROPZONE & TEXTAREA */}
+                  <div className="space-y-3">
+                    {/* Drag-and-drop file upload zone */}
+                    <div
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          const dropFile = e.dataTransfer.files[0];
+                          setProposalFileName(dropFile.name);
+                          setIsReadingFile(true);
+                          try {
+                            const text = await extractTextFromProposalFile(dropFile);
+                            setProposalText(text);
+                            setAiError('');
+                          } catch (err) {
+                            setAiError('Không thể đọc nội dung file. Vui lòng kiểm tra lại file.');
+                          } finally {
+                            setIsReadingFile(false);
+                          }
+                        }
+                      }}
+                      className="border-2 border-dashed border-[#0AE5D5]/40 hover:border-[#0AE5D5] bg-[#030914] hover:bg-[#071322] rounded-xl p-3.5 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1.5"
+                    >
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls,.pdf,.docx,.doc,.csv,.txt,.md,.json"
+                        onChange={handleProposalFileUpload}
+                        className="hidden"
+                        id="ai-proposal-file-input"
+                      />
+                      <label htmlFor="ai-proposal-file-input" className="cursor-pointer w-full flex flex-col items-center">
+                        <div className="flex items-center gap-2">
+                          <Upload className="w-4 h-4 text-[#0AE5D5]" />
+                          <span className="text-xs font-bold text-slate-100">
+                            {isReadingFile ? 'Đang đọc nội dung file...' : 'Tải File Proposal từ Máy Tính (Kéo & Thả hoặc Bấm vào đây)'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 mt-0.5">
+                          Hỗ trợ định dạng: <strong>Excel (.xlsx, .xls), PDF (.pdf), Word (.docx), CSV, TXT, Markdown</strong>
+                        </span>
                         {proposalFileName && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                            📄 {proposalFileName}
+                          <span className="mt-1.5 text-xs font-extrabold px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            📄 Đã tải file: {proposalFileName}
                           </span>
                         )}
-
-                        <label className="cursor-pointer text-xs font-bold text-[#071322] bg-[#0AE5D5] hover:brightness-110 px-3 py-1 rounded-lg flex items-center gap-1.5 transition shadow">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{isReadingFile ? 'Đang đọc file...' : 'Tải File Proposal (PDF, DOCX, XLSX)'}</span>
-                          <input
-                            type="file"
-                            accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json"
-                            onChange={handleProposalFileUpload}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
+                      </label>
                     </div>
 
-                    <textarea
-                      rows={9}
-                      value={proposalText}
-                      onChange={(e) => setProposalText(e.target.value)}
-                      placeholder="Dán hoặc tải nội dung đề xuất chiến dịch (proposal PDF, Word, Excel, TXT...) của bạn tại đây..."
-                      className="w-full bg-[#030914] border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono leading-relaxed focus:outline-none focus:border-[#0AE5D5] transition shadow-inner"
-                    />
+                    <div className="space-y-1">
+                      <label className="text-slate-300 font-bold flex items-center gap-2 text-[11px]">
+                        <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                        Nội dung Proposal đã trích xuất (Có thể xem và chỉnh sửa trực tiếp):
+                      </label>
+                      <textarea
+                        rows={8}
+                        value={proposalText}
+                        onChange={(e) => setProposalText(e.target.value)}
+                        placeholder="Dán hoặc thả nội dung đề xuất chiến dịch (proposal PDF, Word, Excel, TXT...) của bạn tại đây..."
+                        className="w-full bg-[#030914] border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono leading-relaxed focus:outline-none focus:border-[#0AE5D5] transition shadow-inner"
+                      />
+                    </div>
                   </div>
 
                   {/* Error Notification */}
