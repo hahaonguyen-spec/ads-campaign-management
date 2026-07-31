@@ -1,10 +1,14 @@
 /**
  * AI Proposal Parser Utility for CPT Ads Campaign Manager
  * Supports:
- * 1. Live Gemini API structured text parsing (if API Key provided/configured)
- * 2. Intelligent Built-in NLP Rule Engine (Offline/Fallback) for VN & EN proposals
- * 3. Natural Language Fine-Tuning Assistant
+ * 1. Multi-format proposal file text extraction (PDF, DOCX, XLSX, CSV, TXT, MD)
+ * 2. Live Gemini API structured text parsing (if API Key provided/configured)
+ * 3. Intelligent Built-in NLP Rule Engine (Offline/Fallback) for VN & EN proposals
+ * 4. Natural Language Fine-Tuning Assistant
+ * 5. Continuous AI Optimization & Diagnostic Recommendation Engine
  */
+
+import * as XLSX from 'xlsx';
 
 export const SAMPLE_PROPOSALS = [
   {
@@ -98,6 +102,73 @@ Execution Tasks:
 - Week 3-4: Scale Winning Campaigns & Optimize CPA (Media Buyer)`
   }
 ];
+
+/**
+ * Universal Multi-Format File Reader (PDF, DOCX, XLSX, XLS, CSV, TXT, MD, JSON)
+ */
+export async function extractTextFromProposalFile(file) {
+  if (!file) throw new Error('Không tìm thấy file tải lên.');
+  const name = file.name.toLowerCase();
+
+  // 1. Excel File (.xlsx, .xls)
+  if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    let textResult = `=== PROPOSAL FROM EXCEL: ${file.name} ===\n\n`;
+    workbook.SheetNames.forEach(sheetName => {
+      textResult += `--- Sheet: ${sheetName} ---\n`;
+      const sheet = workbook.Sheets[sheetName];
+      const csv = XLSX.utils.sheet_to_csv(sheet);
+      textResult += csv + '\n\n';
+    });
+    return textResult;
+  }
+
+  // 2. Word File (.docx)
+  if (name.endsWith('.docx')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const decoder = new TextDecoder('utf-8');
+    const decoded = decoder.decode(arrayBuffer);
+    
+    // Extract text nodes from DOCX XML structure
+    const textMatches = decoded.match(/<w:t[^>]*>(.*?)<\/w:t>/gi) || [];
+    let extractedText = textMatches.map(m => m.replace(/<[^>]+>/g, '')).join(' ');
+    
+    if (extractedText && extractedText.trim().length > 50) {
+      return `=== PROPOSAL FROM WORD DOCX: ${file.name} ===\n\n` + extractedText;
+    }
+    
+    // Fallback: extract plain printable ASCII/Unicode blocks from binary
+    const printableMatches = decoded.match(/[\w\s\dàáảãạăắằẳẵặâấầnẩẫậnèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ:.,\-$%\/]{4,}/gi) || [];
+    return `=== PROPOSAL FROM WORD DOCX: ${file.name} ===\n\n` + printableMatches.join('\n');
+  }
+
+  // 3. PDF File (.pdf)
+  if (name.endsWith('.pdf')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const decoder = new TextDecoder('utf-8');
+    const rawString = decoder.decode(arrayBuffer);
+    
+    // Extract text strings inside PDF object parenthesized streams (e.g. (Text string) Tj)
+    const pdfTextChunks = rawString.match(/\(([^()]{3,})\)\s*T[jJ]/g) || 
+                          rawString.match(/[\w\s\dàáảãạăắằẳẵặâấầnẩẫậnèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ:.,\-$%\/]{5,}/gi) || [];
+    
+    let cleanPdfText = pdfTextChunks.map(c => c.replace(/^\(/, '').replace(/\)\s*T[jJ]$/, '')).join('\n');
+    if (!cleanPdfText || cleanPdfText.trim().length < 30) {
+      cleanPdfText = rawString.replace(/[^\x20-\x7E\sàáảãạăắằẳẵặâấầnẩẫậnèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ]/g, ' ');
+    }
+
+    return `=== PROPOSAL FROM PDF: ${file.name} ===\n\n` + cleanPdfText;
+  }
+
+  // 4. Text, Markdown, CSV, JSON (.txt, .md, .csv, .json)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(String(e.target?.result || ''));
+    reader.onerror = () => reject(new Error('Lỗi đọc file văn bản.'));
+    reader.readAsText(file);
+  });
+}
 
 /**
  * Main parser entry point
@@ -258,7 +329,7 @@ export function intelligentHeuristicProposalExtract(text, customPrompt = '') {
   if (budgetMatch && budgetMatch[1]) {
     let rawNum = budgetMatch[1].replace(/,/g, '');
     let val = parseFloat(rawNum);
-    if (/triệu|tr/i.test(budgetMatch[0])) val = (val * 1000000) / 25000; // Convert VND to USD estimate
+    if (/triệu|tr/i.test(budgetMatch[0])) val = (val * 1000000) / 25000;
     if (/k/i.test(budgetMatch[0]) && val < 1000) val = val * 1000;
     if (val > 0) totalBudget = val;
   }
@@ -521,7 +592,6 @@ export function fineTuneCampaignWithPrompt(campaignData, promptText) {
     if (text.includes('k') && num < 1000) num = num * 1000;
     if (num > 0) {
       updated.overview.totalBudget = num;
-      // recalculate channel budgets proportionally
       if (updated.budget && updated.budget.length > 0) {
         const totalOld = updated.budget.reduce((acc, b) => acc + (b.allocated || 0), 0) || 1;
         updated.budget.forEach(b => {
@@ -554,6 +624,133 @@ export function fineTuneCampaignWithPrompt(campaignData, promptText) {
   // Recalculate target CPL
   if (updated.kpiTargets.leads > 0 && updated.overview.totalBudget > 0) {
     updated.kpiTargets.cpl = Number((updated.overview.totalBudget / updated.kpiTargets.leads).toFixed(2));
+  }
+
+  return updated;
+}
+
+/**
+ * Continuous AI Optimization & Diagnostic Recommendation Engine
+ * Evaluates active campaign metrics continuously and provides 1-click optimization actions.
+ */
+export function generateContinuousAiRecommendations(campaign) {
+  if (!campaign) return [];
+  const recommendations = [];
+
+  const { overview = {}, kpiTracking = [], budget = [], kpiTargets = {} } = campaign;
+
+  let totalSpend = 0;
+  let totalLeads = 0;
+  let totalFtd = 0;
+  let totalGrossDeposit = 0;
+
+  if (kpiTracking && Array.isArray(kpiTracking)) {
+    totalSpend = kpiTracking.reduce((acc, curr) => acc + (Number(curr?.spend) || 0), 0);
+    totalLeads = kpiTracking.reduce((acc, curr) => acc + (Number(curr?.leads) || 0), 0);
+    totalFtd = kpiTracking.reduce((acc, curr) => acc + (Number(curr?.ftd) || 0), 0);
+    totalGrossDeposit = kpiTracking.reduce((acc, curr) => acc + (Number(curr?.grossDeposit) || 0), 0);
+  }
+
+  const allocatedBudget = Number(overview.totalBudget) || 10000;
+  const currentCpl = totalLeads > 0 ? totalSpend / totalLeads : 0;
+  const targetCpl = Number(kpiTargets.cpl) || 20;
+
+  // Recommendation 1: Budget Re-allocation & Channel Optimization
+  if (budget.length >= 2) {
+    recommendations.push({
+      id: 'rec_reallocate_budget',
+      category: 'Ngân sách & Channel',
+      type: 'warning',
+      title: 'Tối ưu phân bổ ngân sách Kênh Quảng Cáo (Channel Re-allocation)',
+      description: `Kênh ${budget[0]?.channel || 'Meta Ads'} đang chiếm ${Math.round((budget[0]?.allocated / allocatedBudget) * 100)}% ngân sách. Đề xuất dịch chuyển 15% ngân sách sang ${budget[1]?.channel || 'Google Search'} để hạ CPL trung bình.`,
+      actionLabel: '⚡ Tự động phân bổ lại ngân sách 60/40',
+      actionPayload: { type: 'reallocate_budget', ratio: [0.6, 0.4] }
+    });
+  }
+
+  // Recommendation 2: CPL Efficiency Adjustment
+  if (currentCpl > targetCpl) {
+    recommendations.push({
+      id: 'rec_optimize_cpl',
+      category: 'Tối ưu CPL',
+      type: 'danger',
+      title: `CPL hiện tại ($${currentCpl.toFixed(2)}) cao hơn CPL mục tiêu ($${targetCpl.toFixed(2)})`,
+      description: 'Đề xuất cập nhật lại CPL mục tiêu và thêm công việc A/B Testing Video Creative để giảm chi phí/lead.',
+      actionLabel: '⚡ Thêm Task A/B Testing Creative & Điều chỉnh CPL',
+      actionPayload: { type: 'add_ab_task', targetCpl: Number((currentCpl * 0.85).toFixed(2)) }
+    });
+  } else {
+    recommendations.push({
+      id: 'rec_scale_winning',
+      category: 'Tăng trưởng (Scaling)',
+      type: 'success',
+      title: 'Hiệu suất CPL xuất sắc - Đề xuất Scale Ngân sách',
+      description: `CPL thực tế ($${currentCpl.toFixed(2)}) đang duy trì ở mức rất tốt. Đề xuất tăng 20% ngân sách chiến dịch để thu hút thêm leads.`,
+      actionLabel: '⚡ Scale tăng 20% Ngân sách',
+      actionPayload: { type: 'scale_budget', increasePercent: 20 }
+    });
+  }
+
+  // Recommendation 3: Tele-sales & FTD Funnel Conversion
+  const ftdRate = totalLeads > 0 ? (totalFtd / totalLeads) * 100 : 0;
+  if (totalLeads > 20 && ftdRate < 10) {
+    recommendations.push({
+      id: 'rec_boost_ftd_funnel',
+      category: 'Chuyển đổi FTD',
+      type: 'warning',
+      title: `Tỷ lệ chuyển đổi FTD thấp (${ftdRate.toFixed(1)}%)`,
+      description: 'Đề xuất bổ sung quy trình chăm sóc tự động qua Telegram/WhatsApp & ưu đãi Bonus nạp $50 để thúc đẩy FTD.',
+      actionLabel: '⚡ Thêm Hạng mục Bàn giao Campaign Nạp Bonus',
+      actionPayload: { type: 'add_bonus_deliverable' }
+    });
+  }
+
+  return recommendations;
+}
+
+/**
+ * Executes a continuous AI recommendation action directly on a campaign object
+ */
+export function applyAiRecommendationToCampaign(campaign, actionPayload) {
+  if (!campaign || !actionPayload) return campaign;
+  const updated = JSON.parse(JSON.stringify(campaign));
+
+  if (actionPayload.type === 'reallocate_budget' && updated.budget && updated.budget.length >= 2) {
+    const totalB = Number(updated.overview.totalBudget) || 10000;
+    updated.budget[0].allocated = Math.round(totalB * (actionPayload.ratio[0] || 0.6));
+    updated.budget[1].allocated = Math.round(totalB * (actionPayload.ratio[1] || 0.4));
+  }
+
+  if (actionPayload.type === 'add_ab_task') {
+    if (actionPayload.targetCpl) updated.kpiTargets.cpl = actionPayload.targetCpl;
+    if (!updated.timeline) updated.timeline = [];
+    updated.timeline.unshift({
+      task: 'AI Optimization: A/B Testing 03 Ad Creatives & Refine Target Audience',
+      owner: updated.overview.owner || 'Paid Team',
+      status: 'In Progress',
+      deadline: 'Immediate'
+    });
+  }
+
+  if (actionPayload.type === 'scale_budget') {
+    const increase = (actionPayload.increasePercent || 20) / 100;
+    const oldB = Number(updated.overview.totalBudget) || 10000;
+    const newB = Math.round(oldB * (1 + increase));
+    updated.overview.totalBudget = newB;
+    if (updated.budget) {
+      updated.budget.forEach(b => {
+        b.allocated = Math.round(b.allocated * (1 + increase));
+      });
+    }
+  }
+
+  if (actionPayload.type === 'add_bonus_deliverable') {
+    if (!updated.deliverables) updated.deliverables = [];
+    updated.deliverables.unshift({
+      name: 'AI Optimization: 50% Credit Deposit Bonus Incentive Promo Landing Page',
+      status: 'Ready',
+      link: '#'
+    });
   }
 
   return updated;

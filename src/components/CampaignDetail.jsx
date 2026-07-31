@@ -349,7 +349,10 @@ export default function CampaignDetail({ campaign, onBack, onUpdateCampaign, onO
       </div>
 
       {/* AI Diagnostic Insights */}
-      <AIInsights campaign={{ ...campaign, kpiTracking: kpiRows }} />
+      <AIInsights 
+        campaign={{ ...campaign, kpiTracking: kpiRows }} 
+        onUpdateCampaign={onUpdateCampaign}
+      />
 
       {/* Tabs Header - Touch Swappable */}
       <div className="flex border-b border-slate-800 overflow-x-auto gap-2 text-xs sm:text-sm font-bold scrollbar-none py-1">

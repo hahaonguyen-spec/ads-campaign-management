@@ -5,7 +5,12 @@ import {
   RefreshCw, Key, Trash2, Edit3, Wand2, Calendar, HelpCircle, ChevronRight 
 } from 'lucide-react';
 import { parseCampaignExcel } from '../utils/excelParser';
-import { parseProposalWithAI, SAMPLE_PROPOSALS, fineTuneCampaignWithPrompt } from '../utils/aiProposalParser';
+import { 
+  parseProposalWithAI, 
+  SAMPLE_PROPOSALS, 
+  fineTuneCampaignWithPrompt,
+  extractTextFromProposalFile 
+} from '../utils/aiProposalParser';
 
 export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initialTab = 'ai_proposal' }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'ai_proposal', 'direct', or 'upload'
@@ -42,6 +47,8 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initi
 
   // AI Proposal Tab State
   const [proposalText, setProposalText] = useState(SAMPLE_PROPOSALS[0].text);
+  const [proposalFileName, setProposalFileName] = useState('');
+  const [isReadingFile, setIsReadingFile] = useState(false);
   const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem('cpt_gemini_api_key') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
@@ -383,27 +390,37 @@ export default function UploadModal({ isOpen, onClose, onCampaignUploaded, initi
 
                   {/* Proposal Text Input & Upload File */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <label className="text-slate-200 font-bold flex items-center gap-2">
                         <FileText className="w-4 h-4 text-emerald-400" />
-                        Dán nội dung Proposal hoặc tải file văn bản (.txt, .md):
+                        Dán nội dung hoặc Tải file Proposal (PDF, DOCX, XLSX, TXT, CSV...):
                       </label>
-                      <label className="cursor-pointer text-[11px] text-emerald-400 hover:underline font-semibold flex items-center gap-1">
-                        <Upload className="w-3.5 h-3.5" /> Tải file Proposal từ máy tính
-                        <input
-                          type="file"
-                          accept=".txt,.md,.text"
-                          onChange={handleProposalFileUpload}
-                          className="hidden"
-                        />
-                      </label>
+                      
+                      <div className="flex items-center gap-2">
+                        {proposalFileName && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                            📄 {proposalFileName}
+                          </span>
+                        )}
+
+                        <label className="cursor-pointer text-xs font-bold text-[#071322] bg-[#0AE5D5] hover:brightness-110 px-3 py-1 rounded-lg flex items-center gap-1.5 transition shadow">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{isReadingFile ? 'Đang đọc file...' : 'Tải File Proposal (PDF, DOCX, XLSX)'}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json"
+                            onChange={handleProposalFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                     </div>
 
                     <textarea
-                      rows={10}
+                      rows={9}
                       value={proposalText}
                       onChange={(e) => setProposalText(e.target.value)}
-                      placeholder="Dán nội dung đề xuất chiến dịch (proposal) của bạn tại đây..."
+                      placeholder="Dán hoặc tải nội dung đề xuất chiến dịch (proposal PDF, Word, Excel, TXT...) của bạn tại đây..."
                       className="w-full bg-[#030914] border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-100 placeholder-slate-500 font-mono leading-relaxed focus:outline-none focus:border-[#0AE5D5] transition shadow-inner"
                     />
                   </div>
